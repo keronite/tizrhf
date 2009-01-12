@@ -2,7 +2,7 @@
 
 #define FORWARD_SPEED 128
 #define BACKWARD_SPEED 128
-#define TURNING_SPEED 64
+#define TURNING_SPEED 96
 
 //Motor convention, 0 is right, 1 is left
 #define RIGHT_MOTOR 0
@@ -11,10 +11,6 @@
 //Shaft encoder convention, 24 is right, 25 is left
 #define RIGHT_ENCODER 24
 #define LEFT_ENCODER 25
-
-// State of robot movement determined via readings of shaft encoders
-//enum states {TOO_LEFT, TOO_RIGHT, OK};
-//enum states current_state = OK;
 
 
 // usetup is called during the calibration period. It must return before the
@@ -28,6 +24,7 @@ int umain (void) {
 	while(1)
 	{
 		//printf("\nright: %d, left: %d, diff: %d", encoder_read(RIGHT_ENCODER), encoder_read(LEFT_ENCODER), encoder_read(LEFT_ENCODER) - encoder_read(EIGHT_ENCODER));
+		/*
 		if ((encoder_read(RIGHT_ENCODER) - encoder_read(LEFT_ENCODER) > 100))
 		{
 			motor_set_vel(RIGHT_MOTOR, TURNING_SPEED);
@@ -46,6 +43,12 @@ int umain (void) {
 			motor_set_vel(LEFT_MOTOR, FORWARD_SPEED);
 			printf("\nDrive forward, diff = %d", encoder_read(RIGHT_ENCODER) - encoder_read(LEFT_ENCODER));
 		}
+		*/
+		int dif = encoder_read(RIGHT_ENCODER) - encoder_read(LEFT_ENCODER);
+		motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + dif);
+		motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - dif);
+		printf("\nDiff is %d %c", dif, 1);
+		pause(50);
 	}
 	return 0;
 }
