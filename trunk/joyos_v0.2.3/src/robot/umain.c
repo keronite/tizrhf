@@ -26,6 +26,8 @@
 // Include headers from OS
 #include <joyos.h>
 
+#include <gyro.h>
+
 // usetup is called during the calibration period. It must return before the
 // period ends.
 int usetup (void) {
@@ -34,26 +36,17 @@ int usetup (void) {
 
 // Entry point to contestant code.
 // Create threads and return 0.
-int
-umain (void) {
+int umain (void) {
 	// Loop forever
+	printf("Press go");
+	go_click();
+	pause(1000);
+	
+	gyro_init(8,1357.348162,5000);
+	motor_set_vel(2, 96);
 	while (1) {
-		// Clear LCD (with \n) and print ROBOTS at top left
-		printf("\nROBOTS");
-		// Pause for 200 ms
-		pause(200);
-		// Clear LCD and print ROBOTS at bottom right
-		printf("\n                          ROBOTS");
-		// Pause for 200 ms
-		pause(200);
-		// Clear LCD and print ROBOTS at top right
-		printf("\n          ROBOTS");
-		// Pause for 200 ms
-		pause(200);
-		// Clear LCD and print ROBOTS at bottom left
-		printf("\n                ROBOTS");
-		// Pause for 200 ms
-		pause(200);
+		printf("\n%f", (double)gyro_get_degrees());
+		pause(50);
 	}
 
 	// Will never return, but the compiler complains without a return

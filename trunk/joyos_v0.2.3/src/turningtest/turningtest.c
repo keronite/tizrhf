@@ -33,8 +33,9 @@ int umain (void) {
 		motor_set_vel(RIGHT_MOTOR, -TURNING_SPEED);
 		motor_set_vel(LEFT_MOTOR, TURNING_SPEED);
 		
+		uint32_t time = get_time();
+		
 		while (angle < 270) {
-			uint32_t time = get_time();
 			printf("\n%f", angle);
 			//go_click();
 			uint32_t new_time = get_time();
