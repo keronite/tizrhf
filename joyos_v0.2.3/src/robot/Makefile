@@ -7,7 +7,7 @@ TARGET = robot
 SRC = umain.c
 
 # USB-Serial port number for programming the happyboard
-PORT = com6
+PORT = com4
 
 # Top level JoyOS directory
 TOPDIR = ../../
