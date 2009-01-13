@@ -8,6 +8,10 @@
 #define RIGHT_MOTOR 0
 #define LEFT_MOTOR 1
 
+#define GYRO_PORT 8
+
+
+double calibrate_gyro();
 
 // usetup is called during the calibration period. It must return before the
 // period ends.
@@ -17,6 +21,9 @@ int usetup (void) {
 }
 
 int umain (void) {
+
+	calibrate_gyro();
+	
 	while(1) {
 	
 		double angle = 180;
@@ -31,7 +38,7 @@ int umain (void) {
 			printf("\n%f", angle);
 			//go_click();
 			uint32_t new_time = get_time();
-			angle += (double)((analog_read(8)-505.25)*(int16_t)(new_time - time))/1000.0*0.678674081;
+			angle += (double)((analog_read(GYRO_PORT)-505.370)*(int16_t)(new_time - time))/1000.0*0.678674081;
 			if (angle > 360) {
 				angle -= 360;
 			} else if (angle < 0) {
@@ -48,4 +55,18 @@ int umain (void) {
 		motor_set_vel(LEFT_MOTOR, 0);
 	}
 	return 0;
+}
+
+double calibrate_gyro() {
+
+	double avg_read = 0;
+	uint16_t samples = 0;
+	while(!stop_press()) {
+		uint16_t sample = analog_read(GYRO_PORT);
+		samples++;
+		avg_read = (avg_read*(samples - 1) + sample)/(double)samples;
+		printf("\n%f", avg_read);
+		pause(50);
+	}
+	return avg_read;
 }
