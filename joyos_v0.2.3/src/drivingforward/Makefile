@@ -1,10 +1,10 @@
 ##### JoyOS User Makefile ####
 
 # Name of this project (no spaces or extension)
-TARGET = drivingforward
+TARGET = feedbacktest
 
 # Source files - list all your .c files here (separated by spaces)
-SRC = drivingforward.c
+SRC = feedbacktest.c pid.c motion.c motor_group.c
 
 # USB-Serial port number for programming the happyboard
 PORT = com4
