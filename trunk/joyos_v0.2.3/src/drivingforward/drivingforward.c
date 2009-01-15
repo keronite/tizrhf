@@ -42,7 +42,7 @@ int umain (void) {
 	pause(1000);
 	
 	printf("\nInitializing");
-	gyro_init(8,1357.348162,5000);
+	gyro_init(8,1357.348162*1028.0/1080.0,5000);
 	
 	
 	while(1)
