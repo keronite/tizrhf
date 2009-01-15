@@ -31,6 +31,7 @@
 // usetup is called during the calibration period. It must return before the
 // period ends.
 int usetup (void) {
+	set_auto_halt(0);
 	return 0;
 }
 
@@ -38,15 +39,26 @@ int usetup (void) {
 // Create threads and return 0.
 int umain (void) {
 	// Loop forever
-	printf("Press go");
+	printf("\nPress go");
 	go_click();
+	printf("\nWait");
 	pause(1000);
+	printf("\nCalibrating");
 	
-	gyro_init(8,1357.348162,5000);
-	motor_set_vel(2, 96);
+	gyro_init(8,1357.348162*3838.0/3600.0,10000); //*3600/3450*3600/3663*3600/3730
+	motor_set_vel(0, 64);
+	motor_set_vel(1, -64);
 	while (1) {
 		printf("\n%f", (double)gyro_get_degrees());
 		pause(50);
+		if (gyro_get_degrees() >= 3600) {
+			motor_set_vel(0,0);
+			motor_set_vel(1,0);
+			while(1) {
+				printf("\n%f", (double)gyro_get_degrees());
+				pause(50);
+			}
+		}
 	}
 
 	// Will never return, but the compiler complains without a return
