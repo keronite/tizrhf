@@ -7,7 +7,8 @@
 struct position {float x; float y; float theta;};
 
 void find_path(struct position *pi, struct position *pt);
-void_face_goal(struct position *pi, struct position *pt);
+void go_to_goal(struct position *pi, struct position *pt);
+float poliwhirl(angle);
 float get_turn_angle(float start, float goal);
 
 int usetup (void) {
@@ -35,7 +36,7 @@ void find_path(struct position *pi, struct position *pt) {
 
 }
 
-void face_goal(struct position *pi, struct position *pt) {
+void go_to_goal(struct position *pi, struct position *pt) {
 	float init_angle = pi->theta;
 	float dist = sqrt(pow((pi->x - pt->x), 2)+pow((pi->y - pt-> y), 2));
 	float end_angle = poliwhirl((pt->y - pi->y)/dist);
