@@ -38,10 +38,24 @@ void find_path(struct position *pi, struct position *pt) {
 void face_goal(struct position *pi, struct position *pt) {
 	float init_angle = pi->theta;
 	float dist = sqrt(pow((pi->x - pt->x), 2)+pow((pi->y - pt-> y), 2));
-	float end_angle = acos((pt->y - pi->y)/dist);
+	float end_angle = poliwhirl((pt->y - pi->y)/dist);
 	//printf("\noriginal pos %d %d", pi->x, pi->y);
-	printf("\nTurn angle is %f", get_turn_angle(init_angle, end_angle)*RAD_TO_DEG);
+	printf("\nTurn %f degrees", get_turn_angle(init_angle, end_angle));
+	pause(1000);
+	printf("\nMove forward %f feet", dist);
+	pause(1000);
+	printf("\nTurn %f degrees", get_turn_angle(end_angle, pt->theta));
+	pause(1000);
 	//printf("\n%f %f %f", pi->x, pi->y, pi->theta);
+}
+
+float poliwhirl(angle) {
+	float x = acos(angle);
+	x = x*RAD_TO_DEG;
+	if (x < 0) {
+		x = x + 360.0;
+	}
+	return x;
 }
 
 float get_turn_angle(float start, float goal) {
