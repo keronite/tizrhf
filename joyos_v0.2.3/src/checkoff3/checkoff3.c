@@ -20,6 +20,8 @@
 
 #define OFFSET_ESTIMATE 2
 
+#define BEAT 100
+
 #include <lib/pid.h>
 
 
@@ -27,7 +29,7 @@
 #define WHEEL_CIRCUMFERENCE 25.76
 #define WHEEL_TRACK 21.5
 
-#define SQUARE_LENGTH_CM 60
+#define SQUARE_LENGTH_CM 91.44
 
 #include <lib/geartrain.h>
 
@@ -48,6 +50,8 @@ void reset_pid_controller(float goal);
 float get_pid_goal();
 
 void soft_stop_motors(int duration);
+
+int sing();
 
 float clamp (float val, float min, float max);
 
@@ -100,6 +104,7 @@ int umain (void) {
 void setup_state() {
 	while (state == SETUP) {
 		
+		create_thread(sing, 64, 127, "sing_thread");
 		printf("\nPress go");
 		go_click();
 		printf("\nStabilizing");
@@ -213,6 +218,10 @@ void turning_filter() {
 		reset_pid_controller(target_angle);
 		state_time = get_time();
 		state = MOVING;
+		if (target_angle == 360) {
+			state = STOP;
+			return;
+		}
 		soft_stop_motors(500);
 	}
 }
@@ -236,4 +245,61 @@ float clamp (float val, float min, float max) {
 		return max;
 	else
 		return val;
+}
+
+int sing () {
+	while(1) {
+		beep(622,1*BEAT);//1
+		pause(1*BEAT);
+		
+		beep(622,1*BEAT);//2
+		pause(1*BEAT);
+		
+		beep(622,2*BEAT);//3
+		pause(2*BEAT);
+		
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+		
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+		
+		beep(622,2*BEAT);//6
+		pause(2*BEAT);
+		
+		beep(523,4*BEAT);
+		pause(4*BEAT);
+		
+		beep(523,1*BEAT);
+		pause(1*BEAT);
+		
+		beep(523,1*BEAT);
+		pause(1*BEAT);
+		
+		beep(622,2*BEAT);//10
+		pause(2*BEAT);
+		
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+		
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+		
+		beep(622,2*BEAT);
+		pause(2*BEAT);
+		
+		beep(523,4*BEAT);
+		pause(4*BEAT);
+		
+		beep(784,2*BEAT); //15
+		pause(2*BEAT);
+		
+		beep(699,2*BEAT);
+		pause(2*BEAT);
+		
+		beep(784,4*BEAT);
+		pause(4*BEAT);
+	}
+	
+	return 0;
 }
