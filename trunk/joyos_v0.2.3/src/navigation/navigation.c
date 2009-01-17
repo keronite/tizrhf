@@ -7,8 +7,7 @@
 struct position {float x; float y; float theta;};
 
 void find_path(struct position *pi, struct position *pt);
-void go_to_goal(struct position *pi, struct position *pt);
-float poliwhirl(angle);
+float poliwhirl(float angle);
 float get_turn_angle(float start, float goal);
 
 int usetup (void) {
@@ -31,26 +30,24 @@ void umain(void) {
 }
 
 void find_path(struct position *pi, struct position *pt) {
-	face_goal(pi, pt);
-	//printf("\n%f %f %f", pi->x, pi->y, pi->theta);
-
-}
-
-void go_to_goal(struct position *pi, struct position *pt) {
 	float init_angle = pi->theta;
 	float dist = sqrt(pow((pi->x - pt->x), 2)+pow((pi->y - pt-> y), 2));
 	float end_angle = poliwhirl((pt->y - pi->y)/dist);
 	//printf("\noriginal pos %d %d", pi->x, pi->y);
+
+	printf("\ninit angle %f", init_angle);
+	pause(1000);
+	printf("\nPoliwhirl is %f", end_angle);
+	pause(1000);
 	printf("\nTurn %f degrees", get_turn_angle(init_angle, end_angle));
 	pause(1000);
 	printf("\nMove forward %f feet", dist);
 	pause(1000);
 	printf("\nTurn %f degrees", get_turn_angle(end_angle, pt->theta));
 	pause(1000);
-	//printf("\n%f %f %f", pi->x, pi->y, pi->theta);
 }
 
-float poliwhirl(angle) {
+float poliwhirl(float angle) {
 	float x = acos(angle);
 	x = x*RAD_TO_DEG;
 	if (x < 0) {
