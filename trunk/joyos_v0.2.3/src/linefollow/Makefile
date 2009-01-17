@@ -1,10 +1,10 @@
 ##### JoyOS User Makefile ####
 
 # Name of this project (no spaces or extension)
-TARGET = happytest
+TARGET = linefollow
 
 # Source files - list all your .c files here (separated by spaces)
-SRC = happytest.c
+SRC = linefollow.c
 
 # USB-Serial port number for programming the happyboard
 PORT = com4
