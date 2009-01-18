@@ -1,0 +1,40 @@
+status_enum: SUCCESS, FAILURE_RETURN, FAILURE_CONTINUE
+-I don't know if failure_continue is useful, but it means goal was not accomplished, but move on.
+
+NODE:
+Node*[] children
+status_enum attempt()
+
+Inheritance:
+Travel_Node(goal_pos)
+Flag_Node
+Acquire_Node
+Goal_Node
+Line_Node(end_dist, orientation), or a line enum?
+
+Methods made available:
+calculate_abs_pos()
+travel_to(x,y)
+line_follow()
+get_ball()
+turn(angle)
+drive(distance)
+get_angle()
+dump_balls()
+thrash()
+
+Goal_manager (maybe just main)
+current_node
+try_child(i)
+
+Has current node
+Tries children until success or failure_continue
+Winning child becomes next current node
+If no children win, thrash and try again.  maybe increase duration if occurs more than once
+
+global vars:
+x
+y
+angle
+uncertainty? - increases over time when using shaft encoders and moving, resets when sharp distance
+anger? - increases with failures, resets with successes.  Violence of thrashing, aggressiveness
