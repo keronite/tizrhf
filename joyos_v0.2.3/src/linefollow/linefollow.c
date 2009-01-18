@@ -170,26 +170,31 @@ void line_follow_state() {
 		    case (1): //001
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED + LINE_OFFSET_STRONG);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED - LINE_OFFSET_STRONG);
+			  printf("\nHard Right");
 		      break;
 		
 		    case (2): //010
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED);
+			  printf("\nStraight");
 		      break;
 		
 			case (3): //011
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED + LINE_OFFSET_WEAK);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED - LINE_OFFSET_WEAK);
+			  printf("\nSoft Right");
 		      break;
 		
 		    case (4): //100
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - LINE_OFFSET_STRONG);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + LINE_OFFSET_STRONG);
+			  printf("\nHard Left");
 		      break;
 		
 		    case (6): //110
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - LINE_OFFSET_WEAK);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + LINE_OFFSET_WEAK);
+			  printf("\nSoft Left");
 		      break;
 		  }
 		  
@@ -217,11 +222,21 @@ void line_follow_filter() {
 	bool middle = filter_led(MIDDLE_LED);
 	bool right = filter_led(RIGHT_LED);
 	led_reading = (left << 2) + (middle << 1) + (right << 0);
-	if (right) {
-		printf("\nBLACK");
+	/*if (left) {
+		printf("\n1");
 	} else {
-		printf("\nWHITE");
+		printf("\n0");
 	}
+	if (middle) {
+		printf("1");
+	} else {
+		printf("0");
+	}
+	if (right) {
+		printf("1");
+	} else {
+		printf("0");
+	}*/
 	//Add stop conditions if gyro and shaft suggest might be done
 }
 

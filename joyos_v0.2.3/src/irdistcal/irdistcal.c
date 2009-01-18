@@ -42,7 +42,7 @@ int usetup() {
        
 int umain() {
     uint16_t i,n = 36;
-    uint16_t port=8;
+    uint16_t port=23;
     uint16_t km,kc;
     uint16_t xd[36];
     uint16_t yd[36];

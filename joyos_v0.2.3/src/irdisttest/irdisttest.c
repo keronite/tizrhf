@@ -26,9 +26,9 @@
 #include <joyos.h>
 #include <happylib.h>
 
-#define SHARP_M		22840
-#define SHARP_C		26
-#define SHARP_PORT	20
+#define SHARP_M		13569//22840
+#define SHARP_C		4//26
+#define SHARP_PORT	23
 
 // usetup is called during the calibration period. It must return before the
 // period ends.
