@@ -1,10 +1,12 @@
+#include <../src/finalstrategy/actions.h>
+
 #define LENGTH 6.0
 #define WIDTH 8.0
 #define RAD_TO_DEG 57.2957795
 
-#define FORWARD_SPEED 64
+#define FORWARD_SPEED 164
 #define BACKWARD_SPEED 128
-#define TURNING_SPEED 64
+#define TURNING_SPEED 164
 
 //Motor convention, 0 is right, 1 is left
 #define RIGHT_MOTOR 0
@@ -27,18 +29,19 @@
 #define WHEEL_CIRCUMFERENCE 25.76
 #define WHEEL_TRACK 21.5
 #include <lib/geartrain.h>
+#include <lib/pid.h>
 
 enum state_enum {PLANNING, MOVING, TURNING, STOP} state;
 enum planning_state_enum {INITIAL_REANGLE, FORWARD, END_REANGLE, STOP_PLANNING} planstate;
 
 void setup_state();
-void planning_state();
+void planning_state(Position *ip, Position *gp, bool do_last_turn);
 void moving_state();
 void turning_state();
 void stop_state();
 
 void setup_filter();
-void planning_filter(float init_angle, float dist, float poli, float end_angle);
+void planning_filter(float init_angle, float dist, float poli, float end_angle, bool do_last_turn);
 void moving_filter();
 void turning_filter();
 void stop_filter();
@@ -64,7 +67,13 @@ uint16_t left_encoder_base, right_encoder_base;
 float poliwhirl(float angle);
 float get_turn_angle(float start, float goal);
 
-int travel_to (float goal_x, float goal_y, float goal_theta, bool use_theta) {
+Status travel_to (Node* node) {
+
+	float goal_x = node->position.x;
+	float goal_y = node->position.y;
+	float goal_theta = node->position.theta;
+	
+	uint8_t use_theta = node->use_theta;
 
 	// initial position and goal values for testing
 	Position init, goal, *ip, *gp;
@@ -73,9 +82,9 @@ int travel_to (float goal_x, float goal_y, float goal_theta, bool use_theta) {
 	init.x = global_position.x;
 	init.y = global_position.y;
 	init.theta = global_position.theta;
-	goal.x = x;
-	goal.y = y;
-	goal.theta = theta;
+	goal.x = goal_x;
+	goal.y = goal_y;
+	goal.theta = goal_theta;
 	bool do_last_turn = use_theta;
 
 	state = PLANNING;
@@ -101,7 +110,7 @@ int travel_to (float goal_x, float goal_y, float goal_theta, bool use_theta) {
 		 }
 
 	}
-	return 1;
+	return SUCCESS;
 }
 
 void planning_state(Position *ip, Position *gp, bool do_last_turn) {
@@ -115,7 +124,7 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 		//printf("\noriginal pos %d %d", pi->x, pi->y);
 
 		target_distance = dist;
-		planning_filter(init_angle, dist, poli, goal_pos.theta, do_last_turn);
+		planning_filter(init_angle, dist, poli, gp->theta, do_last_turn);
 		/*printf("\ninit angle %f", init_angle);
 		pause(1000);
 		printf("\nPoliwhirl is %f", end_angle);
@@ -157,11 +166,11 @@ void turning_state() {
 		//printf("\n%f  %f", angle, target_angle);
 
 		if (target_angle > angle) {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/2.0 + 40, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/2.0 - 40, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle) + 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle) - 60, -TURNING_SPEED, TURNING_SPEED));
 		} else {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/2.0 - 40, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/2.0 + 40, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle) - 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle) + 60, -TURNING_SPEED, TURNING_SPEED));
 		}
 		pause(50);
 
@@ -233,13 +242,15 @@ void moving_filter() {
 	}
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
+	printf("\n dist is %f", (left_encoder_change + right_encoder_change)/2);
 
 	if ((left_encoder_change + right_encoder_change)/2 >= CM_TO_TICKS(target_distance * 30)) {
 		//target_angle += 90;
 		//target_angle = (int)target_angle%360;
-		state = PLANNING;
+		state = STOP;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
+			soft_stop_motors(200);
 			return;
 		}
 		soft_stop_motors(200);
