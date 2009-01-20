@@ -53,7 +53,7 @@ Node * create_tree() {
 
 	//Create nodes
 	Node * root = root_node();
-	Position p0;
+	/*Position p0;
 	p0.x = 2;
 	p0.y = 2;
 	p0.theta = 0;
@@ -62,11 +62,13 @@ Node * create_tree() {
 	p1.x = 2;
 	p1.y = 3;
 	p1.theta = 0;
-	Node * travel1 = travel_node(p1, false);
+	Node * travel1 = travel_node(p1, false);*/
+	
+	Node * travel0 = goal_node();
 	
 	//Attach nodes
 	add_child(root,travel0);
-	add_child(travel0,travel1);
+	//add_child(travel0,travel1);
 	
 	return root;
 }

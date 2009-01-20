@@ -9,7 +9,7 @@
 #define RIGHT_ENCODER 24
 #define LEFT_ENCODER 25
 
-//PID control constants
+//PID control constants.
 #define KP 1.5
 #define KD 0
 #define KI .05
@@ -19,8 +19,14 @@
 #define BACKWARD_SPEED 128
 #define TURNING_SPEED 164
 
+//Sharp distance sensor
+#define SHARP_M 13569
+#define SHARP_C 4
+#define FRONT_SHARP 23
+
 //Servo ports
 #define LIFT_SERVO 0
+#define FRONT_SERVO 1
 
 //Dumping mechanism constants
 #define SERVO_POS 511

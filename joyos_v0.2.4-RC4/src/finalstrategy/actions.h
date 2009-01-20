@@ -7,5 +7,6 @@
 
 
 Status travel_to(Node* node);
+Status dump_balls(Node* node);
 
 #endif //_ACTIONS_H_

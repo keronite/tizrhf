@@ -4,7 +4,7 @@
 TARGET = finalstrategy
 
 # Source files - list all your .c files here (separated by spaces)
-SRC = umain.c node.c actions.c pid.c util.c
+SRC = umain.c node.c actions.c pid.c util.c irdist.c
 
 # USB-Serial port number for programming the happyboard
 PORT = com4
