@@ -188,6 +188,10 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 			planstate = STOP_PLANNING;
 			state = TURNING;
 			break;
+
+		case(STOP_PLANNING):
+			state = STOP;
+			break;
 		}
 	}
 }
