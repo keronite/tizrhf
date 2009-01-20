@@ -1,29 +1,10 @@
 #include <../src/finalstrategy/actions.h>
 
-#define LENGTH 6.0
-#define WIDTH 8.0
 #define RAD_TO_DEG 57.2957795
-
-#define FORWARD_SPEED 164
-#define BACKWARD_SPEED 128
-#define TURNING_SPEED 164
-
-//Motor convention, 0 is right, 1 is left
-#define RIGHT_MOTOR 0
-#define LEFT_MOTOR 1
-
-//Shaft encoder convention, 24 is right, 25 is left
-#define RIGHT_ENCODER 24
-#define LEFT_ENCODER 25
-
-#define KP 1.5
-#define KD 0
-#define KI .05
 
 #define TURNING_THRESHOLD 2
 
 #define OFFSET_ESTIMATE 2
-
 
 #define ENCODER_TO_WHEEL_RATIO 15
 #define WHEEL_CIRCUMFERENCE 25.76
@@ -34,13 +15,11 @@
 enum state_enum {PLANNING, MOVING, TURNING, STOP} state;
 enum planning_state_enum {INITIAL_REANGLE, FORWARD, END_REANGLE, STOP_PLANNING} planstate;
 
-void setup_state();
 void planning_state(Position *ip, Position *gp, bool do_last_turn);
 void moving_state();
 void turning_state();
 void stop_state(Position goal);
 
-void setup_filter();
 void planning_filter(float init_angle, float dist, float poli, float end_angle, bool do_last_turn);
 void moving_filter();
 void turning_filter();
@@ -50,8 +29,6 @@ void reset_pid_controller(float goal);
 float get_pid_goal();
 
 void soft_stop_motors(int duration);
-
-int sing();
 
 float clamp (float val, float min, float max);
 
@@ -72,7 +49,7 @@ Status travel_to (Node* node) {
 	float goal_x = node->position.x;
 	float goal_y = node->position.y;
 	float goal_theta = node->position.theta;
-	
+
 	uint8_t use_theta = node->use_theta;
 
 	// initial position and goal values for testing
@@ -122,20 +99,8 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 		float dist = sqrt(pow((ip->x - gp->x), 2)+pow((ip->y - gp->y), 2));
 		float poli = poliwhirl((gp->y - ip->y)/dist);
 
-		//printf("\noriginal pos %d %d", pi->x, pi->y);
-
 		target_distance = dist;
 		planning_filter(init_angle, dist, poli, gp->theta, do_last_turn);
-		/*printf("\ninit angle %f", init_angle);
-		pause(1000);
-		printf("\nPoliwhirl is %f", end_angle);
-		pause(1000);
-		printf("\nTurn %f degrees", get_turn_angle(init_angle, end_angle));
-		pause(1000);
-		printf("\nMove forward %f feet", dist);
-		pause(1000);
-		printf("\nTurn %f degrees", get_turn_angle(end_angle, pt->theta));
-		pause(1000);*/
 	}
 }
 
@@ -164,8 +129,6 @@ void turning_state() {
 
 		float angle = gyro_get_degrees();
 
-		//printf("\n%f  %f", angle, target_angle);
-
 		if (target_angle > angle) {
 			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle) + 60, -TURNING_SPEED, TURNING_SPEED));
 			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle) - 60, -TURNING_SPEED, TURNING_SPEED));
@@ -184,7 +147,6 @@ void stop_state(Position goal) {
 	global_position.y = goal.y;
 }
 
-
 void reset_pid_controller(float goal) {
 	init_pid(&controller, KP, KI, KD, NULL, NULL);
 	controller.goal = goal;
@@ -199,7 +161,7 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 		switch (planstate) {
 
 		case(INITIAL_REANGLE):
-			printf("\nWANT TO TURN TO %f", poli);
+			printf("\nTurning to %f", (double) poli);
 			pause(1000);
 			target_angle = poli;
 			planstate = FORWARD;
@@ -207,7 +169,7 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 			break;
 
 		case(FORWARD):
-			printf("\nWANT TO MOVE FORWARD %f", dist);
+			printf("\nMoving forward %f feet", (double) dist);
 			pause(1000);
 			if (do_last_turn) {
 				planstate = END_REANGLE;
@@ -220,7 +182,7 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 			break;
 
 		case(END_REANGLE):
-			printf("\nWANT TO TURN TO %f", end_angle);
+			printf("\nTurning to %f", (double) end_angle);
 			pause(1000);
 			target_angle = end_angle;
 			planstate = STOP_PLANNING;
@@ -238,7 +200,6 @@ void moving_filter() {
 	}
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
-	printf("\n dist is %f", (left_encoder_change + right_encoder_change)/2);
 
 	if ((left_encoder_change + right_encoder_change)/2 >= CM_TO_TICKS(target_distance * 30)) {
 		//target_angle += 90;
@@ -302,7 +263,6 @@ float poliwhirl(float angle) {
 }
 
 float get_turn_angle(float start, float goal) {
-	float turn_angle;
 	float right_diff;
 	if (start <= goal) {
 		right_diff = goal - start;
