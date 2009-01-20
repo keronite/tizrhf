@@ -83,3 +83,20 @@ Position get_ball_position(Ball ball) {
 	
 	return p;
 }
+
+float clamp (float val, float min, float max) {
+	if (val < min)
+		return min;
+	else if (val > max)
+		return max;
+	else
+		return val;
+}
+
+int degrees_to_servo_units(int degrees) {
+	int servo_angle = (int)((degrees*256.0/90.0) + 255)%512;
+	if (servo_angle < 0) {
+		servo_angle += 512;
+	}
+	return servo_angle;
+}
