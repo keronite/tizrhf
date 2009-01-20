@@ -32,8 +32,8 @@ void soft_stop_motors(int duration);
 
 float clamp (float val, float min, float max);
 
-float target_angle;
-float target_distance;
+float target_angle; // target angle variable to be used by all turning functions
+float target_distance; // target distance variable to be used by all moving functions
 
 struct pid_controller controller;
 
@@ -44,6 +44,12 @@ uint16_t left_encoder_base, right_encoder_base;
 float poliwhirl(float angle);
 float get_turn_angle(float start, float goal);
 
+Status drive(float distance);
+Status turn(float angle);
+
+/*
+ * Action travel_to, moves to the location specified in the node.
+ */
 Status travel_to (Node* node) {
 
 	float goal_x = node->position.x;
@@ -83,11 +89,10 @@ Status travel_to (Node* node) {
 				break;
 
 			case (STOP):
-				stop_state(goal);
 				break;
 		 }
-
 	}
+	stop_state(goal);
 	return SUCCESS;
 }
 
@@ -206,9 +211,7 @@ void moving_filter() {
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
 
 	if ((left_encoder_change + right_encoder_change)/2 >= CM_TO_TICKS(target_distance * 30)) {
-		//target_angle += 90;
-		//target_angle = (int)target_angle%360;
-		state = STOP;
+		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
 			soft_stop_motors(200);
@@ -232,6 +235,7 @@ void turning_filter() {
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
+			soft_stop_motors(500);
 			return;
 		}
 		soft_stop_motors(500);
@@ -278,4 +282,58 @@ float get_turn_angle(float start, float goal) {
 		return right_diff - 360.0;
 	}
 	else return right_diff;
+}
+
+/*
+ * Action drive(distance), moves forward a certain distance.
+ */
+Status drive(float distance) {
+	state = MOVING;
+	planstate = STOP_PLANNING;
+	target_distance = distance;
+	while(state != STOP) {
+		 switch (state)
+		 {
+			 case(PLANNING):
+				 break;
+
+			 case (MOVING):
+				 moving_state();
+				 break;
+
+			 case (TURNING):
+				 break;
+
+			 case (STOP):
+				 break;
+		 }
+	}
+	return SUCCESS;
+}
+
+/*
+ * Action turn(angle), turns to a certain angle.
+ */
+Status turn(float angle) {
+	state = TURNING;
+	planstate = STOP_PLANNING;
+	target_angle = angle;
+	while(state != STOP) {
+		 switch (state)
+		 {
+			 case (PLANNING):
+				 break;
+
+			 case (MOVING):
+				 break;
+
+			 case (TURNING):
+				 turning_state();
+				 break;
+
+			 case (STOP):
+				 break;
+		 }
+	}
+	return SUCCESS;
 }
