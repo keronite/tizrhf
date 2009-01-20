@@ -38,7 +38,7 @@ void setup_state();
 void planning_state(Position *ip, Position *gp, bool do_last_turn);
 void moving_state();
 void turning_state();
-void stop_state();
+void stop_state(Position goal);
 
 void setup_filter();
 void planning_filter(float init_angle, float dist, float poli, float end_angle, bool do_last_turn);
@@ -90,7 +90,7 @@ Status travel_to (Node* node) {
 	state = PLANNING;
 	planstate = INITIAL_REANGLE;
 
-	while(1) {
+	while(state != STOP) {
 		 switch (state)
 		 {
 			case (PLANNING):
@@ -106,6 +106,7 @@ Status travel_to (Node* node) {
 				break;
 
 			case (STOP):
+				stop_state(goal);
 				break;
 		 }
 
@@ -117,7 +118,7 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 	while(state == PLANNING) {
 		printf("\nPlanning state");
 		pause(1000);
-		float init_angle = ip->theta;
+		float init_angle = gyro_get_degrees();
 		float dist = sqrt(pow((ip->x - gp->x), 2)+pow((ip->y - gp->y), 2));
 		float poli = poliwhirl((gp->y - ip->y)/dist);
 
@@ -177,17 +178,12 @@ void turning_state() {
 		turning_filter();
 	}
 }
-/*
-void stop_state() {
-	soft_stop_motors(50);
-	while(state == STOP) {
-		float angle = gyro_get_degrees();
-		printf("\n%f", angle);
-		pause(50);
-		stop_filter();
-	}
+
+void stop_state(Position goal) {
+	global_position.x = goal.x;
+	global_position.y = goal.y;
 }
-*/
+
 
 void reset_pid_controller(float goal) {
 	init_pid(&controller, KP, KI, KD, NULL, NULL);
@@ -276,13 +272,11 @@ void turning_filter() {
 		soft_stop_motors(500);
 	}
 }
-/*
+
 void stop_filter() {
-	if (go_press()) {
-		state = MOVING;
-	}
+	return;
 }
-*/
+
 void soft_stop_motors(int duration) {
 	motor_set_vel(RIGHT_MOTOR, 0);
 	motor_set_vel(LEFT_MOTOR, 0);
