@@ -1,4 +1,6 @@
 #include <../src/finalstrategy/actions.h>
+#include <../src/finalstrategy/util.h>
+#include <stdlib.h>
 
 #define RAD_TO_DEG 57.2957795
 
@@ -30,14 +32,12 @@ float get_pid_goal();
 
 void soft_stop_motors(int duration);
 
-float clamp (float val, float min, float max);
-
 float target_angle; // target angle variable to be used by all turning functions
 float target_distance; // target distance variable to be used by all moving functions
 
 struct pid_controller controller;
 
-uint32_t state_time;
+//uint32_t state_time;
 
 uint16_t left_encoder_base, right_encoder_base;
 
@@ -130,16 +130,19 @@ void moving_state() {
 
 void turning_state() {
 	printf("\nTurning state");
+	int motor_multiplier = 1;
 	while(state == TURNING) {
 
 		float angle = gyro_get_degrees();
-
+		if (target_distance < 0){
+			motor_multiplier = -1;
+		}
 		if (target_angle > angle) {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle) + 60, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle) - 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, motor_multiplier * clamp((target_angle - angle) + 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, motor_multiplier * clamp((angle - target_angle) - 60, -TURNING_SPEED, TURNING_SPEED));
 		} else {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle) - 60, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle) + 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, motor_multiplier * clamp((target_angle - angle) - 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, motor_multiplier * clamp((angle - target_angle) + 60, -TURNING_SPEED, TURNING_SPEED));
 		}
 		pause(50);
 
@@ -210,7 +213,7 @@ void moving_filter() {
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
 
-	if ((left_encoder_change + right_encoder_change)/2 >= CM_TO_TICKS(target_distance * 30)) {
+	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30 / 12))) {
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
@@ -231,7 +234,7 @@ void turning_filter() {
 	if (gyro_get_degrees() > target_angle - TURNING_THRESHOLD &&
 			gyro_get_degrees() < target_angle + TURNING_THRESHOLD) {
 		reset_pid_controller(target_angle);
-		state_time = get_time();
+		//state_time = get_time();
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
@@ -250,15 +253,6 @@ void soft_stop_motors(int duration) {
 	motor_set_vel(RIGHT_MOTOR, 0);
 	motor_set_vel(LEFT_MOTOR, 0);
 	pause(duration);
-}
-
-float clamp (float val, float min, float max) {
-	if (val < min)
-		return min;
-	else if (val > max)
-		return max;
-	else
-		return val;
 }
 
 float poliwhirl(float angle) {
@@ -334,6 +328,27 @@ Status turn(float angle) {
 			 case (STOP):
 				 break;
 		 }
+	}
+	return SUCCESS;
+}
+
+/*
+ * dump_balls(), to be called when we wish to actuate
+ * servo and deposit balls into goal. Assumes we are near
+ * our goal.
+ */
+Status dump_balls() {
+	printf("\nActuating servo.");
+	servo_set_pos(LIFT_SERVO, SERVO_POS);
+	printf("\nDriving backwards.");
+	pause(500);
+	drive(BACK_UP_DIST);
+	motor_set_vel(RIGHT_MOTOR, 256);
+	motor_set_vel(LEFT_MOTOR, 256);
+	uint32_t start = get_time();
+	while (get_time() - start < 3000) {
+		servo_set_pos(LIFT_SERVO, SERVO_POS2);
+		servo_set_pos(LIFT_SERVO, SERVO_POS);
 	}
 	return SUCCESS;
 }
