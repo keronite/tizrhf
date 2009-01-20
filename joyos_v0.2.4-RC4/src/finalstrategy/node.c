@@ -1,38 +1,41 @@
 #include <../src/finalstrategy/node.h>
 #include <../src/finalstrategy/actions.h>
+#include <stdlib.h>
 
 Status test_attempt(Node * node);
+
+Status attempt_orient(Node * node);
 
 Status attempt(Node* node) {
 	return node->_attempt(node);
 }
 
 
-Node travel_node(Position destination, uint8_t use_theta) {
-	Node node;
-	node._attempt = travel_to;
-	node.position = destination;
-	node.use_theta = use_theta;
+Node * travel_node(Position destination, uint8_t use_theta) {
+	Node * node = (Node*)malloc(sizeof(Node));
+	node->_attempt = travel_to;
+	node->position = destination;
+	node->use_theta = use_theta;
 	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
-		node.children[i] = NULL;
+		node->children[i] = NULL;
 	}
 	return node;
 }
 
-Node root_node() {
-	Node node;
+Node * root_node() {
+	Node * node = (Node*)malloc(sizeof(Node));
 	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
-		node.children[i] = NULL;
+		node->children[i] = NULL;
 	}
 	return node;
 }
 
-Node test_node(uint8_t id) {
-	Node node;
-	node._attempt = test_attempt;
-	node.use_theta = id;
+Node * test_node(uint8_t id) {
+	Node * node = (Node*)malloc(sizeof(Node));
+	node->_attempt = test_attempt;
+	node->use_theta = id;
 	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
-		node.children[i] = NULL;
+		node->children[i] = NULL;
 	}
 	return node;
 }
@@ -57,4 +60,8 @@ Status test_attempt(Node * node) {
 			return FAILURE;
 		}
 	}
+}
+
+Status attempt_orient(Node * node) {
+	return SUCCESS;
 }

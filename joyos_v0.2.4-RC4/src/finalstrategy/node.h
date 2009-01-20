@@ -17,14 +17,14 @@ struct Node {
 	Node* children [NODE_CHILDREN];
 };
 
-Node travel_node(Position destination, uint8_t use_theta);
-Node flag_node();
-Node acquire_node(Ball ball);
-Node goal_node();
-Node line_node(Line line);
-Node root_node();
-Node test_node(uint8_t id);
-Node find_line_node(Line line);
+Node * travel_node(Position destination, uint8_t use_theta);
+Node * flag_node();
+Node * acquire_node(Ball ball);
+Node * goal_node();
+Node * line_node(Line line);
+Node * root_node();
+Node * test_node(uint8_t id);
+Node * find_line_node(Line line);
 
 void add_child(Node* parent, Node* child);
 
