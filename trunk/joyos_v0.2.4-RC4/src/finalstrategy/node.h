@@ -14,7 +14,7 @@ struct Node {
 	Ball ball;
 	Line line;
 	uint8_t use_theta;
-	//struct Node* children [NODE_CHILDREN];
+	Node* children [NODE_CHILDREN];
 };
 
 Node travel_node(Position destination, uint8_t use_theta);
@@ -22,6 +22,10 @@ Node flag_node();
 Node acquire_node(Ball ball);
 Node goal_node();
 Node line_node(Line line);
+Node root_node();
+Node test_node(uint8_t id);
+
+void add_child(Node* parent, Node* child);
 
 Status attempt(Node* node);
 
