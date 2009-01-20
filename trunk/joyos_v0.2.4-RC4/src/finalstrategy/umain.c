@@ -8,9 +8,10 @@ uint8_t team_number[2] = {3,0};
 #define LSB_US_PER_DEG 1357.348162*3838.0/3600.0*1028.0/1080.0*1000.0
 #define GYRO_CALIB_TIME 5000
 
+Node* create_tree();
+
 int usetup () {
 	set_auto_halt(0);
-	return 0;
 	printf_P (PSTR("\nPress go."));
 	go_click ();
 	printf_P (PSTR("\nStabilizing"));
@@ -24,23 +25,9 @@ int usetup () {
 }
 
 int umain () {
-	//Create nodes
-	Node root = root_node();
-	Node test0 = test_node(0);
-	Node test1 = test_node(1);
-	Node test2 = test_node(2);
-	Node test3 = test_node(3);
-	Node test4 = test_node(4);
-	
-	//Attach nodes
-	add_child(&root,&test0);
-	add_child(&test0,&test1);
-	add_child(&test1,&test2);
-	add_child(&test1,&test3);
-	add_child(&test3,&test4);
-	
+
 	//Start at the root
-	Node * current_node = &root;
+	Node * current_node = create_tree();
 
 	//Traverses the node tree.  Each node is a task.
 	//The children are in prioritized order.
@@ -61,3 +48,26 @@ int umain () {
 	while(1);
 	return 0;
 }
+
+Node * create_tree() {
+
+	//Create nodes
+	Node * root = root_node();
+	Position p0;
+	p0.x = 2;
+	p0.y = 2;
+	p0.theta = 0;
+	Node * travel0 = travel_node(p0, true);
+	Position p1;
+	p1.x = 2;
+	p1.y = 3;
+	p1.theta = 0;
+	Node * travel1 = travel_node(p1, false);
+	
+	//Attach nodes
+	add_child(root,travel0);
+	add_child(travel0,travel1);
+	
+	return root;
+}
+
