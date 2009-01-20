@@ -46,6 +46,7 @@ float get_turn_angle(float start, float goal);
 
 Status drive(float distance);
 Status turn(float angle);
+Status dump_balls(Node* node);
 
 /*
  * Action travel_to, moves to the location specified in the node.
@@ -337,7 +338,7 @@ Status turn(float angle) {
  * servo and deposit balls into goal. Assumes we are near
  * our goal.
  */
-Status dump_balls() {
+Status dump_balls(Node* node) {
 	printf("\nActuating servo.");
 	servo_set_pos(LIFT_SERVO, SERVO_POS);
 	printf("\nDriving backwards.");
