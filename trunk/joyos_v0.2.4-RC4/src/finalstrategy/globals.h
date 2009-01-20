@@ -1,9 +1,27 @@
 #ifndef _GLOBALS_H_
 #define _GLOBALS_H_
 
+//Motor convention, 0 is right, 1 is left.
+#define RIGHT_MOTOR 0
+#define LEFT_MOTOR 1
+
+//Shaft encoder convention, 24 is right, 25 is left.
+#define RIGHT_ENCODER 24
+#define LEFT_ENCODER 25
+
+//PID control constants.
+#define KP 1.5
+#define KD 0
+#define KI .05
+
+//Motor speeds
+#define FORWARD_SPEED 164
+#define BACKWARD_SPEED 128
+#define TURNING_SPEED 164
+
 typedef struct {
-	float x; 
-	float y; 
+	float x;
+	float y;
 	float theta;
 } Position;
 
