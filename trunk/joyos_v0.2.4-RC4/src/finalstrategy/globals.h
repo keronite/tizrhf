@@ -9,7 +9,7 @@
 #define RIGHT_ENCODER 24
 #define LEFT_ENCODER 25
 
-//PID control constants.
+//PID control constants
 #define KP 1.5
 #define KD 0
 #define KI .05
@@ -18,6 +18,15 @@
 #define FORWARD_SPEED 164
 #define BACKWARD_SPEED 128
 #define TURNING_SPEED 164
+
+//Servo ports
+#define LIFT_SERVO 0
+
+//Dumping mechanism constants
+#define SERVO_POS 511
+#define SERVO_POS2 500
+#define BACK_UP_DIST -6
+#define DUMPING_SPEED 256
 
 typedef struct {
 	float x;
