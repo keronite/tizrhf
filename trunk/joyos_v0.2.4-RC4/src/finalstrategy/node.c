@@ -47,8 +47,8 @@ void add_child(Node* parent, Node* child) {
 }
 
 Status test_attempt(Node * node) {
-	printf("TEST ATTEMPT");
-	//printf("\n%d", node->use_theta);
+	printf("\nTEST: %d", node->use_theta);
+	pause(500);
 	while(1) {
 		if (go_press()) {
 			return SUCCESS;
