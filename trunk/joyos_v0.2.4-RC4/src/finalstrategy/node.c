@@ -7,8 +7,6 @@
 
 Status test_attempt(Node * node);
 
-Status attempt_orient(Node * node);
-
 Status attempt(Node* node) {
 	return node->_attempt(node);
 }
@@ -81,34 +79,4 @@ Status test_attempt(Node * node) {
 			return FAILURE;
 		}
 	}
-}
-
-Status attempt_orient(Node * node) {
-		
-	servo_set_pos(FRONT_SERVO, degrees_to_servo_units(0));
-	pause(1000);
-	uint16_t wall_front_dist = irdist_read(FRONT_SHARP);
-	bool wall_front = false;
-	if (wall_front_dist < 30) {
-		wall_front = true;
-	}
-		
-	servo_set_pos(FRONT_SERVO, degrees_to_servo_units(90));
-	pause(1000);
-	uint16_t wall_right_dist = irdist_read(FRONT_SHARP);
-	bool wall_right = false;
-	if (wall_right_dist < 30) {
-		wall_right = true;
-	}
-		
-	if (wall_front && wall_right) {
-		gyro_set_degrees(180);
-	} else if (wall_front && !wall_right) {
-		gyro_set_degrees(-90);
-	} else if (!wall_front && wall_right) {
-		gyro_set_degrees(90);
-	} else {
-		gyro_set_degrees(0);
-	}
-	return SUCCESS;
 }
