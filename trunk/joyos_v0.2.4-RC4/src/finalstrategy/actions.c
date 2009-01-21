@@ -15,7 +15,7 @@
 #include <lib/geartrain.h>
 #include <lib/pid.h>
 
-enum state_enum {PLANNING, MOVING, TURNING, STOP} state;
+enum state_enum {PLANNING, MOVING, TURNING, STOP, FOUND, END} state;
 enum planning_state_enum {INITIAL_REANGLE, FORWARD, END_REANGLE, STOP_PLANNING} planstate;
 
 void planning_state(Position *ip, Position *gp, bool do_last_turn);
@@ -91,6 +91,9 @@ Status travel_to (Node* node) {
 				break;
 
 			case (STOP):
+				break;
+				
+			default:
 				break;
 		 }
 	}
@@ -220,7 +223,7 @@ void moving_filter() {
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
 
-	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30 / 12))) {
+	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30.0 / 12.0))) {
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
@@ -308,6 +311,9 @@ Status drive(float distance) {
 
 			 case (STOP):
 				 break;
+				
+			default:
+				break;
 		 }
 	}
 	return SUCCESS;
@@ -335,6 +341,9 @@ Status turn(float angle) {
 
 			 case (STOP):
 				 break;
+				
+			default:
+				break;
 		 }
 	}
 	return SUCCESS;
@@ -398,4 +407,75 @@ Status attempt_orient(Node * node) {
 		gyro_set_degrees(0);
 	}
 	return SUCCESS;
+}
+
+
+/*
+ * Line search looks for the designated line using position estimates
+ */
+ 
+ void moving_line_filter() {
+
+	if (stop_press()) {
+		state = STOP;
+		return;
+	}
+	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
+	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
+	
+	//IF FIND LINE, RETURN SUCCESS (DO BEST GUESS CHECK)
+
+	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30.0 / 12.0))) {
+		state = END;
+		soft_stop_motors(200);
+	}
+}
+
+ 
+void moving_line_state() {
+	printf("\nMoving line state");
+
+	int motor_multiplier = 1;
+
+	left_encoder_base = encoder_read(LEFT_ENCODER);
+	right_encoder_base = encoder_read(RIGHT_ENCODER);
+
+	if (target_distance < 0){
+		motor_multiplier = -1;
+	}
+	while(state == MOVING)
+	{
+		float input = gyro_get_degrees();
+
+		float output = update_pid_input(&controller, input);
+
+		motor_set_vel(RIGHT_MOTOR, motor_multiplier * (FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
+		motor_set_vel(LEFT_MOTOR, motor_multiplier * (FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
+
+		pause(50);
+
+		moving_line_filter();
+	}
+}
+
+Status line_search(Node * node) {
+	printf("\nLine search");
+	state = MOVING;
+	target_distance = 100;
+	while(state == MOVING) {
+		 switch (state)
+		 {
+			 case (MOVING):
+				 moving_state();
+				 break;
+				 
+			 default:
+				 break;
+		 }
+	}
+	if (state == FOUND) {
+		return SUCCESS;
+	} else {
+		return FAILURE;
+	}
 }
