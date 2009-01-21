@@ -112,16 +112,23 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 
 void moving_state() {
 	printf("\nMoving state");
+
+	int motor_multiplier = 1;
+
 	left_encoder_base = encoder_read(LEFT_ENCODER);
 	right_encoder_base = encoder_read(RIGHT_ENCODER);
+
+	if (target_distance < 0){
+		motor_multiplier = -1;
+	}
 	while(state == MOVING)
 	{
 		float input = gyro_get_degrees();
 
 		float output = update_pid_input(&controller, input);
 
-		motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + (int)output + OFFSET_ESTIMATE);
-		motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - (int)output - OFFSET_ESTIMATE);
+		motor_set_vel(RIGHT_MOTOR, motor_multiplier * (FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
+		motor_set_vel(LEFT_MOTOR, motor_multiplier * (FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
 
 		pause(50);
 
@@ -131,19 +138,17 @@ void moving_state() {
 
 void turning_state() {
 	printf("\nTurning state");
-	int motor_multiplier = 1;
+
 	while(state == TURNING) {
 
 		float angle = gyro_get_degrees();
-		if (target_distance < 0){
-			motor_multiplier = -1;
-		}
+
 		if (target_angle > angle) {
-			motor_set_vel(RIGHT_MOTOR, motor_multiplier * clamp((target_angle - angle) + 60, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, motor_multiplier * clamp((angle - target_angle) - 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle) + 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle) - 60, -TURNING_SPEED, TURNING_SPEED));
 		} else {
-			motor_set_vel(RIGHT_MOTOR, motor_multiplier * clamp((target_angle - angle) - 60, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, motor_multiplier * clamp((angle - target_angle) + 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle) - 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle) + 60, -TURNING_SPEED, TURNING_SPEED));
 		}
 		pause(50);
 
@@ -283,6 +288,7 @@ float get_turn_angle(float start, float goal) {
  * Action drive(distance), moves forward a certain distance.
  */
 Status drive(float distance) {
+	printf("\nIn function drive()");
 	state = MOVING;
 	planstate = STOP_PLANNING;
 	target_distance = distance;
@@ -340,16 +346,17 @@ Status turn(float angle) {
  */
 Status dump_balls(Node* node) {
 	printf("\nActuating servo.");
-	servo_set_pos(LIFT_SERVO, SERVO_POS);
-	printf("\nDriving backwards.");
-	pause(500);
-	drive(BACK_UP_DIST);
-	motor_set_vel(RIGHT_MOTOR, 256);
-	motor_set_vel(LEFT_MOTOR, 256);
+	servo_set_pos(1, SERVO_POS);
+	drive(6);
+	//motor_set_vel(RIGHT_MOTOR, 128);
+	//motor_set_vel(LEFT_MOTOR, 128);
 	uint32_t start = get_time();
-	while (get_time() - start < 3000) {
-		servo_set_pos(LIFT_SERVO, SERVO_POS2);
-		servo_set_pos(LIFT_SERVO, SERVO_POS);
+	while (get_time() - start < 5000) {
+		servo_set_pos(1, SERVO_POS2/2);
+		pause(500);
+		servo_set_pos(1, SERVO_POS - 10);
+		pause(500);
 	}
+	soft_stop_motors(500);
 	return SUCCESS;
 }

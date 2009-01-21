@@ -31,7 +31,7 @@
 //Dumping mechanism constants
 #define SERVO_POS 511
 #define SERVO_POS2 500
-#define BACK_UP_DIST -6
+#define BACK_UP_DIST -6.0
 #define DUMPING_SPEED 256
 
 typedef struct {
