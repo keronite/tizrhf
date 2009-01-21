@@ -87,7 +87,7 @@ Status travel_to (Node* node) {
 
 			case (STOP):
 				break;
-				
+
 			default:
 				break;
 		 }
@@ -300,7 +300,7 @@ Status drive(float distance) {
 
 			 case (STOP):
 				 break;
-				
+
 			default:
 				break;
 		 }
@@ -330,7 +330,7 @@ Status turn(float angle) {
 
 			 case (STOP):
 				 break;
-				
+
 			default:
 				break;
 		 }
@@ -365,7 +365,7 @@ Status dump_balls(Node* node) {
  * beginning of a match.
  */
 Status attempt_orient(Node * node) {
-		
+
 	servo_set_pos(FRONT_SERVO, 255);
 	pause(1000);
 	uint16_t wall_front_dist = irdist_read(FRONT_SHARP);
@@ -373,7 +373,7 @@ Status attempt_orient(Node * node) {
 	if (wall_front_dist < 30) {
 		wall_front = true;
 	}
-		
+
 	servo_set_pos(FRONT_SERVO, 0);
 	pause(1000);
 	uint16_t wall_right_dist = irdist_read(FRONT_SHARP);
@@ -381,7 +381,7 @@ Status attempt_orient(Node * node) {
 	if (wall_right_dist < 30) {
 		wall_right = true;
 	}
-		
+
 	if (wall_front && wall_right) {
 		printf("\n180 %d %d", wall_front_dist, wall_right_dist);
 		gyro_set_degrees(180);
@@ -402,7 +402,7 @@ Status attempt_orient(Node * node) {
 /*
  * Line search looks for the designated line using position estimates
  */
- 
+
  void moving_line_filter() {
 
 	if (stop_press()) {
@@ -411,7 +411,7 @@ Status attempt_orient(Node * node) {
 	}
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
-	
+
 	//IF FIND LINE, RETURN SUCCESS (DO BEST GUESS CHECK)
 
 	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30.0 / 12.0))) {
@@ -420,7 +420,7 @@ Status attempt_orient(Node * node) {
 	}
 }
 
- 
+
 void moving_line_state() {
 	printf("\nMoving line state");
 
@@ -457,7 +457,7 @@ Status line_search(Node * node) {
 			 case (MOVING):
 				 moving_state();
 				 break;
-				 
+
 			 default:
 				 break;
 		 }
@@ -467,4 +467,46 @@ Status line_search(Node * node) {
 	} else {
 		return FAILURE;
 	}
+}
+
+/*
+ * Attempts to use sharp distance sensors to determine where
+ * we are on the game board.
+ */
+Status get_abs_pos(Node* node) {
+	int angle = (int)gyro_get_degrees();
+
+	//printf("\n%d  %d", angle, angle%360);
+
+	servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle));
+	pause(1000);
+	uint8_t x = irdist_read(23)/2.54;
+
+	servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle - 90));
+	pause(1000);
+	uint8_t y = irdist_read(23)/2.54;
+
+	if (0 >= angle%360 && angle%360 < 90) {
+		global_position.x = x;
+		global_position.y = y;
+		printf("\n x = %f, y = %f", (double) global_position.x, (double) global_position.y);
+	}
+	else if (90 >= angle%360 && angle%360 < 180) {
+		global_position.x = BOARD_LENGTH - x;
+		global_position.y = y;
+		printf("\n x = %f, y = %f", (double) global_position.x, (double) global_position.y);
+	}
+	else if (180 >= angle%360 && angle%360 < 270) {
+		global_position.x = BOARD_LENGTH - x;
+		global_position.y = BOARD_WIDTH - y;
+		printf("\n x = %f, y = %f", (double) global_position.x, (double) global_position.y);
+	}
+	else {
+		global_position.x = x;
+		global_position.y = BOARD_WIDTH - y;
+		printf("\n x = %f, y = %f", (double) global_position.x, (double) global_position.y);
+	}
+
+	global_position.theta = angle;
+	return SUCCESS;
 }
