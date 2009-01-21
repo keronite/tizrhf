@@ -2,7 +2,7 @@
 
 uint8_t team_number[2] = {3,0};
 
-#define FORWARD_SPEED 64
+#define FORWARD_SPEED 86
 #define BACKWARD_SPEED 128
 #define TURNING_SPEED 64
 
@@ -14,15 +14,15 @@ uint8_t team_number[2] = {3,0};
 #define RIGHT_ENCODER 24
 #define LEFT_ENCODER 25
 
-#define KP 1.5
+#define KP 1.75
 #define KD 0
-#define KI .05
+#define KI .4
 
-#define TURNING_THRESHOLD 2
+#define TURNING_THRESHOLD 3
 
-#define OFFSET_ESTIMATE 2
+#define OFFSET_ESTIMATE -5
 
-#define BEAT 25
+#define BEAT 100
 
 #include <lib/pid.h>
 
@@ -31,7 +31,7 @@ uint8_t team_number[2] = {3,0};
 #define WHEEL_CIRCUMFERENCE 25.76
 #define WHEEL_TRACK 21.5
 
-#define SQUARE_LENGTH_CM 91.44
+#define SQUARE_LENGTH_CM 120.0
 
 #include <lib/geartrain.h>
 
@@ -106,14 +106,14 @@ int umain (void) {
 void setup_state() {
 	while (state == SETUP) {
 		
-		create_thread(sing, 64, 127, "sing_thread");
+		//create_thread(sing, 64, 127, "sing_thread");
 		printf("\nPress go");
 		go_click();
 		printf("\nStabilizing");
 		pause(1000);
 		
 		printf("\nInitializing");
-		gyro_init(8,1357.348162*3838.0/3600.0*1028.0/1080.0,5000);
+		gyro_init(8,1357.348162*3838.0/3600.0*1028.0/1080.0*1000.0*387.0/360.0*341.0/360.0*727.0/720.0,5000);
 		
 		target_angle = 0;
 		reset_pid_controller(target_angle);
@@ -126,19 +126,23 @@ void moving_state() {
 	printf("\nMoving state");
 	left_encoder_base = encoder_read(LEFT_ENCODER);
 	right_encoder_base = encoder_read(RIGHT_ENCODER);
+	float output = 0;
 	while(state == MOVING)
 	{
 		float input = gyro_get_degrees();
 		
-		float output = update_pid_input(&controller, input);
+		output = update_pid_input(&controller, input);
 		
 		motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + (int)output + OFFSET_ESTIMATE);
 		motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - (int)output - OFFSET_ESTIMATE);
+		
+		//printf("\n%d %d", (int)input, (int)output);
 		
 		pause(50);
 		
 		moving_filter();
 	}
+	printf("\n%d", (int)output);
 }
 
 void turning_state() {
@@ -150,13 +154,13 @@ void turning_state() {
 		//printf("\n%f  %f", angle, target_angle);
 		
 		if (target_angle > angle) {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/2.0 + 40, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/2.0 - 40, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/8.0 + 45, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/8.0 - 45 + OFFSET_ESTIMATE, -TURNING_SPEED + 2*OFFSET_ESTIMATE, TURNING_SPEED));
 		} else {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/2.0 - 40, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/2.0 + 40, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/8.0 - 45, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/8.0 + 45 - OFFSET_ESTIMATE, -TURNING_SPEED, TURNING_SPEED - 2*OFFSET_ESTIMATE));
 		}
-		pause(50);
+		pause(20);
 		
 		turning_filter();
 	}
@@ -166,7 +170,7 @@ void stop_state() {
 	soft_stop_motors(50);
 	while(state == STOP) {
 		float angle = gyro_get_degrees();
-		printf("\n%f", angle);
+		//printf("\n%f", angle);
 		pause(50);
 		stop_filter();
 	}
@@ -203,7 +207,8 @@ void moving_filter() {
 	if ((left_encoder_change + right_encoder_change)/2 >= CM_TO_TICKS(SQUARE_LENGTH_CM)) {
 		target_angle += 90;
 		//target_angle = (int)target_angle%360;
-		state = TURNING;
+		//state = TURNING;
+		state = STOP;
 		soft_stop_motors(200);
 	}
 }
@@ -220,10 +225,10 @@ void turning_filter() {
 		reset_pid_controller(target_angle);
 		state_time = get_time();
 		state = MOVING;
-		if (target_angle == 360) {
-			state = STOP;
-			return;
-		}
+		//if (target_angle == 360) {
+		//	state = STOP;
+		//	return;
+		//}
 		soft_stop_motors(500);
 	}
 }
