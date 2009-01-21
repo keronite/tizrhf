@@ -3,6 +3,7 @@
 
 #include <../src/finalstrategy/globals.h>
 #include <../src/finalstrategy/node.h>
+#include <../src/finalstrategy/util.h>
 #include <joyos.h>
 
 

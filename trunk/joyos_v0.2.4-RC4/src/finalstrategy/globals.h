@@ -34,6 +34,15 @@
 #define BACK_UP_DIST -6.0
 #define DUMPING_SPEED 256
 
+//Numeric constants
+#define RAD_TO_DEG 57.2957795
+
+//Geartrain
+#define ENCODER_TO_WHEEL_RATIO 15
+#define WHEEL_CIRCUMFERENCE 25.76
+#define WHEEL_TRACK 21.5
+#include <lib/geartrain.h>
+
 typedef struct {
 	float x;
 	float y;

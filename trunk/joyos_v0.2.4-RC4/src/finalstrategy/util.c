@@ -1,4 +1,5 @@
 #include <../src/finalstrategy/util.h>
+#include <joyos.h>
 
 
 Position get_ball_position(Ball ball) {
@@ -99,4 +100,10 @@ int degrees_to_servo_units(int degrees) {
 		servo_angle += 512;
 	}
 	return servo_angle;
+}
+
+void soft_stop_motors(int duration) {
+	motor_set_vel(RIGHT_MOTOR, 0);
+	motor_set_vel(LEFT_MOTOR, 0);
+	pause(duration);
 }
