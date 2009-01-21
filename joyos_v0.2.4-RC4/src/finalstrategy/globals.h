@@ -1,6 +1,9 @@
 #ifndef _GLOBALS_H_
 #define _GLOBALS_H_
 
+#define BOARD_LENGTH 96.0
+#define BOARD_WIDTH 72.0
+
 //Motor convention, 0 is right, 1 is left.
 #define RIGHT_MOTOR 0
 #define LEFT_MOTOR 1
