@@ -1,5 +1,6 @@
 #include <../src/finalstrategy/actions.h>
 #include <../src/finalstrategy/util.h>
+#include <happylib.h>
 #include <stdlib.h>
 
 #define RAD_TO_DEG 57.2957795
@@ -358,5 +359,43 @@ Status dump_balls(Node* node) {
 		pause(500);
 	}
 	soft_stop_motors(500);
+	return SUCCESS;
+}
+
+/*
+ * Determines which cardinal direction we face at the
+ * beginning of a match.
+ */
+Status attempt_orient(Node * node) {
+		
+	servo_set_pos(FRONT_SERVO, 255);
+	pause(1000);
+	uint16_t wall_front_dist = irdist_read(FRONT_SHARP);
+	bool wall_front = false;
+	if (wall_front_dist < 30) {
+		wall_front = true;
+	}
+		
+	servo_set_pos(FRONT_SERVO, 0);
+	pause(1000);
+	uint16_t wall_right_dist = irdist_read(FRONT_SHARP);
+	bool wall_right = false;
+	if (wall_right_dist < 30) {
+		wall_right = true;
+	}
+		
+	if (wall_front && wall_right) {
+		printf("\n180 %d %d", wall_front_dist, wall_right_dist);
+		gyro_set_degrees(180);
+	} else if (wall_front && !wall_right) {
+		printf("\n-90 %d %d", wall_front_dist, wall_right_dist);
+		gyro_set_degrees(-90);
+	} else if (!wall_front && wall_right) {
+		printf("\n90 %d %d", wall_front_dist, wall_right_dist);
+		gyro_set_degrees(90);
+	} else {
+		printf("\n0 %d %d", wall_front_dist, wall_right_dist);
+		gyro_set_degrees(0);
+	}
 	return SUCCESS;
 }
