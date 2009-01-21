@@ -107,3 +107,89 @@ void soft_stop_motors(int duration) {
 	motor_set_vel(LEFT_MOTOR, 0);
 	pause(duration);
 }
+
+void thrash() {
+	motor_set_vel(RIGHT_MOTOR,255);
+	motor_set_vel(LEFT_MOTOR,255);
+	
+	motor_set_vel(FLAG_MOTOR,255);
+	
+	pause(500);
+	motor_set_vel(RIGHT_MOTOR,-255);
+	motor_set_vel(LEFT_MOTOR,255);
+	pause(500);
+	motor_set_vel(FLAG_MOTOR,-255);
+	motor_set_vel(RIGHT_MOTOR,255);
+	motor_set_vel(LEFT_MOTOR,-255);
+	pause(500);
+	motor_set_vel(RIGHT_MOTOR,-255);
+	motor_set_vel(LEFT_MOTOR,-255);
+	pause(500);
+	motor_set_vel(FLAG_MOTOR,0);
+	soft_stop_motors(1);
+}
+
+void calibrate_leds() {
+	
+	for (int i = 0; i < NUM_LEDS; i++) {
+		for (int j = 0; j < LED_RESERVED_INDICES + NUM_LED_SAMPLES; j++) {
+			led_filter_matrix[i][j] = 0;
+		}
+	}
+	
+	uint16_t samples;
+	
+	printf("\nPlace LEDs on light surface, then press go");
+	
+	go_click();
+	
+	float avg_low_read_l = 0;
+	float avg_low_read_m = 0;
+	float avg_low_read_r = 0;
+	
+	samples = 0;
+	
+	while(!stop_press()) {
+		uint16_t sample_l = analog_read(LEFT_LED);
+		uint16_t sample_m = analog_read(MIDDLE_LED);
+		uint16_t sample_r = analog_read(RIGHT_LED);
+		
+		samples++;
+		
+		avg_low_read_l = (avg_low_read_l*(samples - 1) + sample_l)/(float)samples;
+		avg_low_read_m = (avg_low_read_m*(samples - 1) + sample_m)/(float)samples;
+		avg_low_read_r = (avg_low_read_r*(samples - 1) + sample_r)/(float)samples;
+		
+		printf("\nL:%d  M:%d  R:%d", (int)avg_low_read_l, (int)avg_low_read_m, (int)avg_low_read_r);
+		pause(50);
+	}
+	
+	printf("\nPlace LEDs on dark surface, then press go");
+	
+	go_click();
+	
+	float avg_high_read_l = 0;
+	float avg_high_read_m = 0;
+	float avg_high_read_r = 0;
+	
+	samples = 0;
+	
+	while(!stop_press()) {
+		uint16_t sample_l = analog_read(LEFT_LED);
+		uint16_t sample_m = analog_read(MIDDLE_LED);
+		uint16_t sample_r = analog_read(RIGHT_LED);
+		
+		samples++;
+		
+		avg_high_read_l = (avg_high_read_l*(samples - 1) + sample_l)/(float)samples;
+		avg_high_read_m = (avg_high_read_m*(samples - 1) + sample_m)/(float)samples;
+		avg_high_read_r = (avg_high_read_r*(samples - 1) + sample_r)/(float)samples;
+		
+		printf("\nL:%d  M:%d  R:%d", (int)avg_high_read_l, (int)avg_high_read_m, (int)avg_high_read_r);
+		pause(50);
+	}
+	
+	led_filter_matrix[LEFT_LED_INDEX][LED_CALIBRATION_INDEX] = (avg_high_read_l + avg_low_read_l)/2;
+	led_filter_matrix[MIDDLE_LED_INDEX][LED_CALIBRATION_INDEX] = (avg_high_read_m + avg_low_read_m)/2;
+	led_filter_matrix[RIGHT_LED_INDEX][LED_CALIBRATION_INDEX] = (avg_high_read_r + avg_low_read_r)/2;
+}

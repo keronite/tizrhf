@@ -1,21 +1,24 @@
 #ifndef _GLOBALS_H_
 #define _GLOBALS_H_
 
+#include <joyos.h>
+
 #define BOARD_LENGTH 96.0
 #define BOARD_WIDTH 72.0
 
 //Motor convention, 0 is right, 1 is left.
 #define RIGHT_MOTOR 0
 #define LEFT_MOTOR 1
+#define FLAG_MOTOR 2
 
 //Shaft encoder convention, 24 is right, 25 is left.
 #define RIGHT_ENCODER 24
 #define LEFT_ENCODER 25
 
 //PID control constants.
-#define KP 1.5
+#define KP 1.75
 #define KD 0
-#define KI .05
+#define KI .4
 
 //Motor speeds
 #define FORWARD_SPEED 164
@@ -45,6 +48,21 @@
 #define WHEEL_CIRCUMFERENCE 25.76
 #define WHEEL_TRACK 21.5
 #include <lib/geartrain.h>
+
+//LEDs
+#define NUM_LEDS 3
+#define NUM_LED_SAMPLES 5
+#define RIGHT_LED 22
+#define MIDDLE_LED 21
+#define LEFT_LED 20
+#define RIGHT_LED_INDEX 0
+#define MIDDLE_LED_INDEX 1
+#define LEFT_LED_INDEX 2
+#define LED_RESERVED_INDICES 2
+#define LED_OFFSET_INDEX 0
+#define LED_CALIBRATION_INDEX 1
+#define LINE_OFFSET_WEAK 5
+#define LINE_OFFSET_STRONG 10
 
 typedef struct {
 	float x;
@@ -86,5 +104,7 @@ typedef enum {
 } Status;
 
 Position global_position;
+
+uint16_t led_filter_matrix[NUM_LEDS][NUM_LED_SAMPLES + LED_RESERVED_INDICES];
 
 #endif //_GLOBALS_H_

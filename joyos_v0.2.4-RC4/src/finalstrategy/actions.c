@@ -1,12 +1,13 @@
 #include <../src/finalstrategy/actions.h>
 #include <../src/finalstrategy/util.h>
+#include <../src/finalstrategy/globals.h>
 #include <happylib.h>
 #include <stdlib.h>
 
 
-#define TURNING_THRESHOLD 2
+#define TURNING_THRESHOLD 3
 
-#define OFFSET_ESTIMATE 2
+#define OFFSET_ESTIMATE -5
 
 #include <lib/pid.h>
 
@@ -87,7 +88,7 @@ Status travel_to (Node* node) {
 
 			case (STOP):
 				break;
-
+				
 			default:
 				break;
 		 }
@@ -102,7 +103,7 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 		pause(1000);
 		float init_angle = gyro_get_degrees();
 		float dist = sqrt(pow((ip->x - gp->x), 2)+pow((ip->y - gp->y), 2));
-		float poli = poliwhirl((gp->y - ip->y)/dist);
+		float poli = atan2((gp->x - ip->x),(gp->y - ip->y));
 
 		target_distance = dist;
 		planning_filter(init_angle, dist, poli, gp->theta, do_last_turn);
@@ -129,7 +130,7 @@ void moving_state() {
 		motor_set_vel(RIGHT_MOTOR, motor_multiplier * (FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
 		motor_set_vel(LEFT_MOTOR, motor_multiplier * (FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
 
-		pause(50);
+		pause(20);
 
 		moving_filter();
 	}
@@ -143,11 +144,11 @@ void turning_state() {
 		float angle = gyro_get_degrees();
 
 		if (target_angle > angle) {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle) + 60, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle) - 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/8.0 + 45, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/8.0 - 45 + OFFSET_ESTIMATE, -TURNING_SPEED + OFFSET_ESTIMATE, TURNING_SPEED));
 		} else {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle) - 60, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle) + 60, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/8.0 - 45, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/8.0 + 45 - OFFSET_ESTIMATE, -TURNING_SPEED, TURNING_SPEED - OFFSET_ESTIMATE));
 		}
 		pause(50);
 
@@ -182,7 +183,7 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 			break;
 
 		case(FORWARD):
-			printf("\nMoving forward %f feet", (double) dist);
+			printf("\nMoving forward %f inches", (double) dist);
 			pause(1000);
 			if (do_last_turn) {
 				planstate = END_REANGLE;
@@ -218,7 +219,7 @@ void moving_filter() {
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
 
-	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30.0 / 12.0))) {
+	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 2.54))) {
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
@@ -300,7 +301,7 @@ Status drive(float distance) {
 
 			 case (STOP):
 				 break;
-
+				
 			default:
 				break;
 		 }
@@ -330,7 +331,7 @@ Status turn(float angle) {
 
 			 case (STOP):
 				 break;
-
+				
 			default:
 				break;
 		 }
@@ -365,7 +366,7 @@ Status dump_balls(Node* node) {
  * beginning of a match.
  */
 Status attempt_orient(Node * node) {
-
+		
 	servo_set_pos(FRONT_SERVO, 255);
 	pause(1000);
 	uint16_t wall_front_dist = irdist_read(FRONT_SHARP);
@@ -373,7 +374,7 @@ Status attempt_orient(Node * node) {
 	if (wall_front_dist < 30) {
 		wall_front = true;
 	}
-
+		
 	servo_set_pos(FRONT_SERVO, 0);
 	pause(1000);
 	uint16_t wall_right_dist = irdist_read(FRONT_SHARP);
@@ -381,7 +382,7 @@ Status attempt_orient(Node * node) {
 	if (wall_right_dist < 30) {
 		wall_right = true;
 	}
-
+		
 	if (wall_front && wall_right) {
 		printf("\n180 %d %d", wall_front_dist, wall_right_dist);
 		gyro_set_degrees(180);
@@ -395,6 +396,9 @@ Status attempt_orient(Node * node) {
 		printf("\n0 %d %d", wall_front_dist, wall_right_dist);
 		gyro_set_degrees(0);
 	}
+	
+	go_click();
+	
 	return SUCCESS;
 }
 
@@ -402,7 +406,7 @@ Status attempt_orient(Node * node) {
 /*
  * Line search looks for the designated line using position estimates
  */
-
+ 
  void moving_line_filter() {
 
 	if (stop_press()) {
@@ -411,7 +415,7 @@ Status attempt_orient(Node * node) {
 	}
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
-
+	
 	//IF FIND LINE, RETURN SUCCESS (DO BEST GUESS CHECK)
 
 	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30.0 / 12.0))) {
@@ -420,7 +424,7 @@ Status attempt_orient(Node * node) {
 	}
 }
 
-
+ 
 void moving_line_state() {
 	printf("\nMoving line state");
 
@@ -457,7 +461,7 @@ Status line_search(Node * node) {
 			 case (MOVING):
 				 moving_state();
 				 break;
-
+				 
 			 default:
 				 break;
 		 }
@@ -469,44 +473,104 @@ Status line_search(Node * node) {
 	}
 }
 
-/*
- * Attempts to use sharp distance sensors to determine where
- * we are on the game board.
- */
-Status get_abs_pos(Node* node) {
-	int angle = (int)gyro_get_degrees();
+//LINE FOLLOWING
 
-	//printf("\n%d  %d", angle, angle%360);
+uint8_t led_reading;
 
-	servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle));
-	pause(1000);
-	uint8_t x = irdist_read(23)/2.54;
-
-	servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle - 90));
-	pause(1000);
-	uint8_t y = irdist_read(23)/2.54;
-
-	if (0 >= angle%360 && angle%360 < 90) {
-		global_position.x = x;
-		global_position.y = y;
-		printf("\n x = %f, y = %f", (double) global_position.x, (double) global_position.y);
+bool filter_led(uint8_t led_port) {
+	uint8_t index;
+	switch (led_port)
+	{
+		case (RIGHT_LED):
+			index = RIGHT_LED_INDEX;
+			break;
+	
+	    case (MIDDLE_LED):
+			index = MIDDLE_LED_INDEX;
+			break;
+	
+	    case (LEFT_LED):
+			index = LEFT_LED_INDEX;
+			break;
+	
+	    default:
+			index = MIDDLE_LED_INDEX;
+			break;
 	}
-	else if (90 >= angle%360 && angle%360 < 180) {
-		global_position.x = BOARD_LENGTH - x;
-		global_position.y = y;
-		printf("\n x = %f, y = %f", (double) global_position.x, (double) global_position.y);
+	
+	
+	uint8_t offset = (uint8_t)(led_filter_matrix[index][LED_OFFSET_INDEX]);
+	if (offset < 2) {offset = 2;}
+	uint16_t calibration = led_filter_matrix[index][LED_CALIBRATION_INDEX];
+	uint16_t sample = analog_read(led_port);
+	uint16_t current_reading = (sample > calibration); //1 if black, 0 if white
+	led_filter_matrix[index][offset] = current_reading; //Put the new sample in the array
+	offset = (offset + 1 - LED_RESERVED_INDICES)%(NUM_LED_SAMPLES) + LED_RESERVED_INDICES; //Increment offset and keep it in range
+	led_filter_matrix[index][LED_OFFSET_INDEX] = offset; //Store the new offset
+	
+	uint8_t sum = 0; //Count true samples
+	for(uint8_t i = LED_RESERVED_INDICES; i < LED_RESERVED_INDICES + NUM_LED_SAMPLES; i++) {
+		if (led_filter_matrix[index][i] != 0) {
+			sum++;
+		}
 	}
-	else if (180 >= angle%360 && angle%360 < 270) {
-		global_position.x = BOARD_LENGTH - x;
-		global_position.y = BOARD_WIDTH - y;
-		printf("\n x = %f, y = %f", (double) global_position.x, (double) global_position.y);
+	
+	if (sum > NUM_LED_SAMPLES/2) {
+		return false; //CHANGEME!!!!!
+	} else {
+		return true;
 	}
-	else {
-		global_position.x = x;
-		global_position.y = BOARD_WIDTH - y;
-		printf("\n x = %f, y = %f", (double) global_position.x, (double) global_position.y);
-	}
+	
+}
 
-	global_position.theta = angle;
+void line_follow_filter() {
+	bool left = filter_led(LEFT_LED);
+	bool middle = filter_led(MIDDLE_LED);
+	bool right = filter_led(RIGHT_LED);
+	led_reading = (left << 2) + (middle << 1) + (right << 0);
+}
+
+Status line_follow(Node * node) {
+	led_reading = 0;
+	while(1) {
+		//MSB->LSB, left, middle, right
+		  switch (led_reading)
+		  {		
+		    case (1): //001
+		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED + LINE_OFFSET_STRONG);
+		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED - LINE_OFFSET_STRONG);
+			  printf("\nHard Right");
+		      break;
+		
+		    case (2): //010
+		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED);
+		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED);
+			  printf("\nStraight");
+		      break;
+		
+			case (3): //011
+		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED + LINE_OFFSET_WEAK);
+		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED - LINE_OFFSET_WEAK);
+			  printf("\nSoft Right");
+		      break;
+		
+		    case (4): //100
+		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - LINE_OFFSET_STRONG);
+		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + LINE_OFFSET_STRONG);
+			  printf("\nHard Left");
+		      break;
+		
+		    case (6): //110
+		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - LINE_OFFSET_WEAK);
+		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + LINE_OFFSET_WEAK);
+			  printf("\nSoft Left");
+		      break;
+		  }
+		  
+		pause(10);
+		
+		line_follow_filter();
+	}
 	return SUCCESS;
 }
+
