@@ -4,7 +4,7 @@
 TARGET = linefollow
 
 # Source files - list all your .c files here (separated by spaces)
-SRC = linefollow.c
+SRC = linefollow.c irdist.c
 
 # USB-Serial port number for programming the happyboard
 PORT = com4
