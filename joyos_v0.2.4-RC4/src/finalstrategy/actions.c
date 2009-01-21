@@ -3,16 +3,11 @@
 #include <happylib.h>
 #include <stdlib.h>
 
-#define RAD_TO_DEG 57.2957795
 
 #define TURNING_THRESHOLD 2
 
 #define OFFSET_ESTIMATE 2
 
-#define ENCODER_TO_WHEEL_RATIO 15
-#define WHEEL_CIRCUMFERENCE 25.76
-#define WHEEL_TRACK 21.5
-#include <lib/geartrain.h>
 #include <lib/pid.h>
 
 enum state_enum {PLANNING, MOVING, TURNING, STOP, FOUND, END} state;
@@ -257,12 +252,6 @@ void turning_filter() {
 
 void stop_filter() {
 	return;
-}
-
-void soft_stop_motors(int duration) {
-	motor_set_vel(RIGHT_MOTOR, 0);
-	motor_set_vel(LEFT_MOTOR, 0);
-	pause(duration);
 }
 
 float poliwhirl(float angle) {
