@@ -1,6 +1,7 @@
 #include <joyos.h>
 #include <../src/finalstrategy/globals.h>
 #include <../src/finalstrategy/node.h>
+#include <../src/finalstrategy/util.h>
 #include <happylib.h>
 
 uint8_t team_number[2] = {3,0};
@@ -21,6 +22,8 @@ int usetup () {
 	gyro_init (GYRO_PORT, LSB_US_PER_DEG, GYRO_CALIB_TIME);
 	
 	irdist_set_calibration (SHARP_M, SHARP_C);
+	
+	calibrate_leds();
 	
 	global_position.x = 0;
 	global_position.y = 0;
@@ -57,13 +60,13 @@ Node * create_tree() {
 	//Create nodes
 	Node * root = root_node();
 	/*Position p0;
-	p0.x = 2;
-	p0.y = 2;
+	p0.x = 12;
+	p0.y = 12;
 	p0.theta = 0;
-	Node * travel0 = travel_node(p0, true);*/
+	Node * travel0 = travel_node(p0, false);*/
 	Position p1;
-	p1.x = 2;
-	p1.y = 2;
+	p1.x = 24;
+	p1.y = 24;
 	p1.theta = 0;
 	Node * travel1 = travel_node(p1, false);
 	
