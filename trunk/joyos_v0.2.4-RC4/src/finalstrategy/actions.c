@@ -13,6 +13,7 @@
 
 enum state_enum {PLANNING, MOVING, TURNING, STOP, FOUND, END} state;
 enum planning_state_enum {INITIAL_REANGLE, FORWARD, END_REANGLE, STOP_PLANNING} planstate;
+typedef enum {NORTH, SOUTH, WEST, EAST} Orientation;
 
 void planning_state(Position *ip, Position *gp, bool do_last_turn);
 void moving_state();
@@ -48,6 +49,7 @@ float get_turn_angle(float start, float goal);
 Status drive(float distance);
 Status turn(float angle);
 Status dump_balls(Node* node);
+Orientation get_orientation (int angle);
 
 bool filter_led(uint8_t led_port);
 
@@ -198,8 +200,6 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 				planstate = STOP_PLANNING;
 			}
 			target_distance = dist;
-			//printf("\n dist = %f", (double) dist);
-			//go_click();
 			state = MOVING;
 			break;
 
@@ -407,7 +407,7 @@ Status dump_balls(Node* node) {
 	}*/
 	servo_set_pos(LIFT_SERVO, 300);
 	soft_stop_motors(1);
-	
+
 	drive(-12);
 	servo_set_pos(JAW_SERVO, 175*1.5);
 	servo_set_pos(LIFT_SERVO, 0);
@@ -466,7 +466,6 @@ Status attempt_orient(Node * node) {
 
 	return SUCCESS;
 }
-
 
 /*
  * Line search looks for the designated line using position estimates
@@ -685,30 +684,9 @@ Status get_abs_pos(Node* node) {
 }
 
 /*
- * Sharp-distance positioning when on a line
- */
-Status get_pos_while_on_line(Node* node, Line line) {
-	while(1){
-		int angle = (int)gyro_get_degrees();
-		//printf("\n%d  %d", angle, angle%360);
-
-		servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle));
-		pause(1000);
-		uint8_t x = irdist_read(23)/2.54;
-
-		servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle - 91));
-		pause(1000);
-		uint8_t y = irdist_read(23)/2.54;
-		printf("\n 1st is %d 2nd is %d gyro is %d", x, y, angle%360);
-	}
-	return SUCCESS;
-}
-
-
-/*
  * Pick up a ball
  */
- 
+
 Status acquire_ball(Node * node) {
 	servo_set_pos(JAW_SERVO, 350*1.5);//Open servo
 	pause(500);
@@ -788,12 +766,12 @@ void moving_gather_filter(float start_servo, float end_servo, float scale) {
 	}
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
-	
+
 	int encoder_avg = (left_encoder_change + right_encoder_change)/2;
 	int encoder_goal = abs(CM_TO_TICKS(target_distance * 2.54));
-	
+
 	float ratio = (float)encoder_avg/(float)encoder_goal;
-	
+
 	servo_set_pos(JAW_SERVO, ratio*(end_servo*1.5-start_servo*1.5) + start_servo*1.5);
 
 	if (ratio >= 1) {
@@ -805,4 +783,76 @@ void moving_gather_filter(float start_servo, float end_servo, float scale) {
 		}
 		hard_brake();
 	}
+}
+
+/*
+ * Sharp-distance positioning when on a line
+ */
+Status get_pos_while_on_line(Node* node) {
+		int angle = (int)gyro_get_degrees();
+		int servo_set1 = degrees_to_servo_units(-angle);
+		int servo_set2 = degrees_to_servo_units(-angle - 90);
+		int a1 = servo_units_to_degrees(servo_set1);
+		int a2 = servo_units_to_degrees(servo_set2);
+		Orientation s1 = get_orientation(angle - a1);
+		Orientation s2 = get_orientation(angle - a2);
+		//printf("\n%d  %d", angle, angle%360);
+
+		servo_set_pos(FRONT_SERVO, servo_set1);
+		pause(1000);
+		uint8_t x = irdist_read(23)/2.54;
+
+		servo_set_pos(FRONT_SERVO, servo_set2);
+		pause(1000);
+		uint8_t y = irdist_read(23)/2.54;
+		//printf("\n1st: %d, %s, 2nd: %d, %s", x, s1, y, s2);
+
+		if (s1 == NORTH) {
+			global_position.y = BOARD_Y - x;
+		}
+		else if (s1 == SOUTH) {
+			global_position.y = x;
+		}
+		if (s2 == EAST) {
+			global_position.x = BOARD_X - y;
+		}
+		else if (s1 == WEST) {
+			global_position.x = y;
+		}
+		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	return SUCCESS;
+}
+
+Orientation get_orientation (int angle) {
+	int anglepos;
+	if (angle%360 < 0){
+		anglepos = angle%360 + 360;
+	}
+	else {
+		anglepos = angle%360;
+	}
+	Orientation o = NORTH;
+	char* os = "U";
+	int min_angle_dif = 45;
+	if (abs(anglepos) < min_angle_dif) {
+		min_angle_dif = abs(anglepos - 0);
+		o = NORTH;
+		os = "N";
+	}
+	if (abs(anglepos - 90) < min_angle_dif) {
+		min_angle_dif = abs(anglepos - 90);
+		o = WEST;
+		os = "W";
+	}
+	if (abs(anglepos - 270) < min_angle_dif) {
+		min_angle_dif = abs(anglepos - 270);
+		o = EAST;
+		os = "E";
+	}
+	if (abs(anglepos - 180) < min_angle_dif) {
+		min_angle_dif = abs(anglepos - 180);
+		o = SOUTH;
+		os = "S";
+	}
+	return o;
 }

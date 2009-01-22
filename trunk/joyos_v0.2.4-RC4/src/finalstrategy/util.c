@@ -134,6 +134,11 @@ int degrees_to_servo_units(int degrees) {
 	return servo_angle;
 }
 
+int servo_units_to_degrees(int servo_angle) {
+	int degrees = (int) -(servo_angle*180.0/511.0) + 90;
+	return degrees;
+}
+
 void soft_stop_motors(int duration) {
 	motor_set_vel(RIGHT_MOTOR, 0);
 	motor_set_vel(LEFT_MOTOR, 0);

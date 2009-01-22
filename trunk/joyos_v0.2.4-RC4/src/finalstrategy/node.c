@@ -51,7 +51,7 @@ Node * goal_node() {
 
 Node * posn_node() {
 	Node * node = (Node*)malloc(sizeof(Node));
-	node->_attempt = get_abs_pos;
+	node->_attempt = get_pos_while_on_line;
 	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
 		node->children[i] = NULL;
 	}

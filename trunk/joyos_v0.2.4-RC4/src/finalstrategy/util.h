@@ -10,6 +10,7 @@ void soft_stop_motors(int duration);
 void thrash();
 void calibrate_leds();
 void hard_brake();
+int servo_units_to_degrees(int servo_angle);
 int sing();
 
 #endif //_UTIL_H_
