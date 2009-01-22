@@ -3,8 +3,8 @@
 
 #include <joyos.h>
 
-#define BOARD_LENGTH 96.0
-#define BOARD_WIDTH 72.0
+#define BOARD_X 72.0
+#define BOARD_Y 96.0
 
 //Motor convention, 0 is right, 1 is left.
 #define RIGHT_MOTOR 0
@@ -74,7 +74,9 @@ typedef enum {
 	BOTTOM_LINE,
 	TOP_LINE,
 	LEFT_LINE,
-	RIGHT_LINE
+	RIGHT_LINE,
+	FLAGBOX_LINE_TOP,
+	FLAGBOX_LINE_BOTTOM,
 } Line;
 
 typedef enum {
