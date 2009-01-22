@@ -828,7 +828,8 @@ Status get_pos_while_on_line(Node* node) {
 		else if (s1 == WEST) {
 			global_position.x = y;
 		}
-
+		global_position.x = global_position.x - 7.8*(sin((50.2 - angle)/RAD_TO_DEG));
+		global_position.y = global_position.y - 7.8*(cos((50.2 - angle)/RAD_TO_DEG));
 		//global_position.x = 72-18;
 		//global_position.y = 18;
 		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
