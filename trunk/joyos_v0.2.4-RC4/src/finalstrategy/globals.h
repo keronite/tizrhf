@@ -57,16 +57,12 @@
 
 //LEDs
 #define NUM_LEDS 3
-#define NUM_LED_SAMPLES 5
 #define RIGHT_LED 22
 #define MIDDLE_LED 21
 #define LEFT_LED 20
 #define RIGHT_LED_INDEX 0
 #define MIDDLE_LED_INDEX 1
 #define LEFT_LED_INDEX 2
-#define LED_RESERVED_INDICES 2
-#define LED_OFFSET_INDEX 0
-#define LED_CALIBRATION_INDEX 1
 #define LINE_OFFSET_WEAK 5
 #define LINE_OFFSET_STRONG 10
 
@@ -115,6 +111,6 @@ typedef enum {
 
 Position global_position;
 
-uint16_t led_filter_matrix[NUM_LEDS][NUM_LED_SAMPLES + LED_RESERVED_INDICES];
+uint16_t led_filter_matrix[NUM_LEDS];
 
 #endif //_GLOBALS_H_

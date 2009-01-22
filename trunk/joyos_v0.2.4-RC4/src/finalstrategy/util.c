@@ -164,9 +164,7 @@ void thrash() {
 void calibrate_leds() {
 
 	for (int i = 0; i < NUM_LEDS; i++) {
-		for (int j = 0; j < LED_RESERVED_INDICES + NUM_LED_SAMPLES; j++) {
-			led_filter_matrix[i][j] = 0;
-		}
+		led_filter_matrix[i] = 0;
 	}
 
 	uint16_t samples;
@@ -221,9 +219,9 @@ void calibrate_leds() {
 		pause(50);
 	}
 
-	led_filter_matrix[LEFT_LED_INDEX][LED_CALIBRATION_INDEX] = (avg_high_read_l + avg_low_read_l)/2;
-	led_filter_matrix[MIDDLE_LED_INDEX][LED_CALIBRATION_INDEX] = (avg_high_read_m + avg_low_read_m)/2;
-	led_filter_matrix[RIGHT_LED_INDEX][LED_CALIBRATION_INDEX] = (avg_high_read_r + avg_low_read_r)/2;
+	led_filter_matrix[LEFT_LED_INDEX] = (avg_high_read_l + avg_low_read_l)/2;
+	led_filter_matrix[MIDDLE_LED_INDEX] = (avg_high_read_m + avg_low_read_m)/2;
+	led_filter_matrix[RIGHT_LED_INDEX] = (avg_high_read_r + avg_low_read_r)/2;
 }
 
 int sing () {

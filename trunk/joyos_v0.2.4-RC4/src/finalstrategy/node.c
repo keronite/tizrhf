@@ -98,3 +98,13 @@ Node * flag_node() {
 	}
 	return node;
 }
+
+Node * find_line_node(Line line) {
+	Node * node = (Node*)malloc(sizeof(Node));
+	node->_attempt = line_search;
+	node->line = line;
+	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
+		node->children[i] = NULL;
+	}
+	return node;
+}
