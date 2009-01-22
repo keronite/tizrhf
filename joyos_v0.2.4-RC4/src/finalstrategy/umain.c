@@ -65,16 +65,29 @@ Node * create_tree() {
 	p0.theta = 0;
 	Node * travel0 = travel_node(p0, false);*/
 	Position p1;
-	p1.x = 24;
-	p1.y = 24;
+	p1.x = 0;
+	p1.y = 66-6;
 	p1.theta = 0;
-	Node * travel1 = travel_node(p1, false);
+	Node * travel0 = travel_node(p1, false);
 	
-	Node * travel0 = corner_orient_node();
+	Position p2;
+	p2.x = 23;
+	p2.y = 66-6;
+	p2.theta = 0;
+	Node * travel1 = travel_node(p2, false);
+	
+	Position p3;
+	p3.x = 24;
+	p3.y = 54;
+	p3.theta = 0;
+	Node * travel2 = travel_node(p3, false);
+	
+	Node * flag = flag_node();
 	
 	//Attach nodes
 	add_child(root,travel0);
 	add_child(travel0,travel1);
+	add_child(travel1,flag);
 	//add_child(travel0,travel1);
 	
 	return root;

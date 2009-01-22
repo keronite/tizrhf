@@ -45,6 +45,8 @@ Status drive(float distance);
 Status turn(float angle);
 Status dump_balls(Node* node);
 
+bool filter_led(uint8_t led_port);
+
 /*
  * Action travel_to, moves to the location specified in the node.
  */
@@ -100,10 +102,10 @@ Status travel_to (Node* node) {
 void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 	while(state == PLANNING) {
 		printf("\nPlanning state");
-		pause(1000);
+		pause(100);
 		float init_angle = gyro_get_degrees();
 		float dist = sqrt(pow((ip->x - gp->x), 2)+pow((ip->y - gp->y), 2));
-		float poli = atan2((gp->x - ip->x),(gp->y - ip->y));
+		float poli = atan2(-1*(gp->x - ip->x),(gp->y - ip->y))*RAD_TO_DEG;
 
 		target_distance = dist;
 		planning_filter(init_angle, dist, poli, gp->theta, do_last_turn);
@@ -176,7 +178,7 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 
 		case(INITIAL_REANGLE):
 			printf("\nTurning to %f", (double) poli);
-			pause(1000);
+			pause(100);
 			target_angle = poli;
 			planstate = FORWARD;
 			state = TURNING;
@@ -184,7 +186,7 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 
 		case(FORWARD):
 			printf("\nMoving forward %f inches", (double) dist);
-			pause(1000);
+			pause(100);
 			if (do_last_turn) {
 				planstate = END_REANGLE;
 			}
@@ -197,7 +199,7 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 
 		case(END_REANGLE):
 			printf("\nTurning to %f", (double) end_angle);
-			pause(1000);
+			pause(100);
 			target_angle = end_angle;
 			planstate = STOP_PLANNING;
 			state = TURNING;
@@ -416,7 +418,14 @@ Status attempt_orient(Node * node) {
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
 	
-	//IF FIND LINE, RETURN SUCCESS (DO BEST GUESS CHECK)
+	
+	bool left = filter_led(LEFT_LED);
+	bool middle = filter_led(MIDDLE_LED);
+	bool right = filter_led(RIGHT_LED);//IF FIND LINE, RETURN SUCCESS (DO BEST GUESS CHECK)
+	
+	if (left || middle || right) {
+		state = SUCCESS;
+	}
 
 	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30.0 / 12.0))) {
 		state = END;
@@ -459,7 +468,7 @@ Status line_search(Node * node) {
 		 switch (state)
 		 {
 			 case (MOVING):
-				 moving_state();
+				 moving_line_state();
 				 break;
 				 
 			 default:
@@ -574,3 +583,12 @@ Status line_follow(Node * node) {
 	return SUCCESS;
 }
 
+Status flagbox(Node * node) {
+	turn(0);
+	motor_set_vel(FLAG_MOTOR, 192);
+	drive(-12);
+	motor_set_vel(RIGHT_MOTOR, -32);
+	motor_set_vel(LEFT_MOTOR, -32);
+	while(1);
+	return SUCCESS;
+}
