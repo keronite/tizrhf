@@ -16,7 +16,7 @@ enum planning_state_enum {INITIAL_REANGLE, FORWARD, END_REANGLE, STOP_PLANNING} 
 typedef enum {NORTH, SOUTH, WEST, EAST} Orientation;
 
 void planning_state(Position *ip, Position *gp, bool do_last_turn);
-void moving_state();
+void moving_state(float scale);
 void turning_state();
 void stop_state(Position goal);
 
@@ -46,7 +46,7 @@ uint16_t left_encoder_base, right_encoder_base;
 float poliwhirl(float angle);
 float get_turn_angle(float start, float goal);
 
-Status drive(float distance);
+Status drive(float distance, float scale);
 Status turn(float angle);
 Status dump_balls(Node* node);
 Orientation get_orientation (int angle);
@@ -87,7 +87,7 @@ Status travel_to (Node* node) {
 				break;
 
 			case (MOVING):
-				moving_state();
+				moving_state(1);
 				break;
 
 			case (TURNING):
@@ -118,7 +118,7 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 	}
 }
 
-void moving_state() {
+void moving_state(float scale) {
 	printf("\nMoving state");
 
 	int motor_multiplier = 1;
@@ -135,8 +135,8 @@ void moving_state() {
 
 		float output = update_pid_input(&controller, input);
 
-		motor_set_vel(RIGHT_MOTOR, motor_multiplier * (FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
-		motor_set_vel(LEFT_MOTOR, motor_multiplier * (FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
+		motor_set_vel(RIGHT_MOTOR, motor_multiplier * scale * (FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
+		motor_set_vel(LEFT_MOTOR, motor_multiplier * scale * (FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
 
 		pause(20);
 
@@ -289,7 +289,7 @@ float get_turn_angle(float start, float goal) {
 /*
  * Action drive(distance), moves forward a certain distance.
  */
-Status drive(float distance) {
+Status drive(float distance, float scale) {
 	printf("\nIn function drive()");
 	state = MOVING;
 	planstate = STOP_PLANNING;
@@ -301,7 +301,7 @@ Status drive(float distance) {
 				 break;
 
 			 case (MOVING):
-				 moving_state();
+				 moving_state(scale);
 				 break;
 
 			 case (TURNING):
@@ -332,7 +332,7 @@ Status drive_speed(float distance, float speed_scale) {
 				 break;
 
 			 case (MOVING):
-				 moving_state();
+				 moving_state(speed_scale);
 				 break;
 
 			 case (TURNING):
@@ -408,7 +408,7 @@ Status dump_balls(Node* node) {
 	servo_set_pos(LIFT_SERVO, 300);
 	soft_stop_motors(1);
 
-	drive(-12);
+	drive(-12, 1);
 	servo_set_pos(JAW_SERVO, 175*1.5);
 	servo_set_pos(LIFT_SERVO, 0);
 	while(1) {
@@ -471,14 +471,14 @@ Status attempt_orient(Node * node) {
  * Line search looks for the designated line using position estimates
  */
 
- void moving_line_filter() {
+ void moving_line_filter(Line line) {
 
 	if (stop_press()) {
 		state = STOP;
 		return;
 	}
-//	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
-//	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
+	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
+	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
 
 
 	bool left = filter_led(LEFT_LED);
@@ -487,9 +487,11 @@ Status attempt_orient(Node * node) {
 
 	if (left || middle || right) {
 		//printf("\nTriggered");
-		state = FOUND;
-		soft_stop_motors(200);
-		pause(1000);
+		if (get_line_position(line).x + 6.0 > global_position.x - (left_encoder_change + right_encoder_change)/2) {
+			state = FOUND;
+			soft_stop_motors(200);
+			pause(1000);
+		}
 	}
 /*
 	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30.0 / 12.0))) {
@@ -499,7 +501,7 @@ Status attempt_orient(Node * node) {
 }
 
 
-void moving_line_state() {
+void moving_line_state(Line line) {
 	printf("\nMoving line state");
 
 	int motor_multiplier = 1;
@@ -521,7 +523,7 @@ void moving_line_state() {
 
 		pause(50);
 
-		moving_line_filter();
+		moving_line_filter(line);
 	}
 }
 
@@ -534,7 +536,7 @@ Status line_search(Node * node) {
 		 switch (state)
 		 {
 			 case (MOVING):
-				 moving_line_state();
+				 moving_line_state(node->line);
 				 break;
 
 			 default:
@@ -632,7 +634,7 @@ Status line_follow(Node * node) {
 Status flagbox(Node * node) {
 	turn(0);
 	motor_set_vel(FLAG_MOTOR, 192);
-	drive(-12);
+	drive(-12, .5);
 	motor_set_vel(RIGHT_MOTOR, -32);
 	motor_set_vel(LEFT_MOTOR, -32);
 	while(1);
@@ -806,6 +808,7 @@ Status get_pos_while_on_line(Node* node) {
 		pause(1000);
 		uint8_t y = irdist_read(23)/2.54;
 		//printf("\n1st: %d, %s, 2nd: %d, %s", x, s1, y, s2);
+	
 
 		if (s1 == NORTH) {
 			global_position.y = BOARD_Y - x;
@@ -819,6 +822,9 @@ Status get_pos_while_on_line(Node* node) {
 		else if (s1 == WEST) {
 			global_position.x = y;
 		}
+		
+		global_position.x = 72-18;
+		global_position.y = 18;
 		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
 	return SUCCESS;
 }

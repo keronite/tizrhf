@@ -61,41 +61,15 @@ Node * create_tree() {
 
 	//Create nodes
 	Node * root = root_node();
-	/*Position p0;
-	p0.x = 12;
-	p0.y = 12;
-	p0.theta = 0;
-	Node * travel0 = travel_node(p0, false);*/
-	Line line = TOP_LINE;
-	Node * line_node = find_line_node(line);
 	
-	Position p1;
-	p1.x = 0;
-	p1.y = 66-6;
-	p1.theta = 0;
-	Node * travel0 = travel_node(p1, false);
 	
-	Position p2;
-	p2.x = 23;
-	p2.y = 66-6;
-	p2.theta = 0;
-	Node * travel1 = travel_node(p2, false);
-	
-	Position p3;
-	p3.x = 22;
-	p3.y = 54;
-	p3.theta = 0;
-	Node * travel2 = travel_node(p3, false);
-	
-	Node * flag = flag_node();
+	Node * corner = corner_orient_node();
 	
 	Position p4;
 	p4.x = 14.5;
 	p4.y = 21.5;
 	p4.theta = 0;
 	Node * one_foot_out = travel_node(p4, false);
-	
-	Node * corner = corner_orient_node();
 	
 	Node * grab = acquire_node(LARGE_BALL0);
 	
@@ -106,27 +80,32 @@ Node * create_tree() {
 	
 	Node * position_to_goal = travel_node(p5,true);
 	
-	Position p6;
-	p6.x = 60;
-	p6.y = 12;
-	p6.theta = -150;
-	
-	Node * position_to_goal2 = travel_node(p6,false);
-	
 	Node * goal = goal_node();
+	
+	Node * posn = posn_node();
+	//REPOSITION
+	
+	Position pFlag;
+	pFlag.x = 54;
+	pFlag.y = 60-16+7;
+	pFlag.theta=90;
+	
+	Node * position_for_flag = travel_node(pFlag,true);
+	
+	Node * line_find = find_line_node(FLAGBOX_LINE_TOP);
+	
+	Node * flag = flag_node();
 	
 	//Attach nodes
 	add_child(root,corner);
 	add_child(corner,one_foot_out);
 	add_child(one_foot_out,grab);
 	add_child(grab,position_to_goal);
-	//add_child(position_to_goal,position_to_goal2);
 	add_child(position_to_goal,goal);
-	
-	//add_child(root,travel0);
-	//add_child(travel0,travel1);
-	//add_child(travel1,flag);
-	//add_child(travel0,travel1);
+	add_child(goal,posn);
+	add_child(posn,position_for_flag);
+	add_child(position_for_flag,line_find);
+	add_child(line_find,flag);
 	
 	
 	
