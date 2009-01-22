@@ -359,13 +359,13 @@ Status dump_balls(Node* node) {
 	drive(6);
 	//motor_set_vel(RIGHT_MOTOR, 128);
 	//motor_set_vel(LEFT_MOTOR, 128);
-	uint32_t start = get_time();
+	/*uint32_t start = get_time();
 	while (get_time() - start < 5000) {
 		servo_set_pos(LIFT_SERVO, 0);
 		pause(500);
 		servo_set_pos(LIFT_SERVO, 620);
 		pause(500);
-	}
+	}*/
 	servo_set_pos(LIFT_SERVO, 300);
 	soft_stop_motors(500);
 
