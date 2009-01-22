@@ -655,3 +655,15 @@ Status get_pos_while_on_line(Node* node, Line line) {
 	}
 	return SUCCESS;
 }
+
+
+/*
+ * Pick up a ball
+ */
+ 
+Status acquire_ball(Node * node) {
+	//Open servo
+	//Drive a little
+	//Close servo
+	//Stop
+}

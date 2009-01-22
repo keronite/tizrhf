@@ -108,3 +108,13 @@ Node * find_line_node(Line line) {
 	}
 	return node;
 }
+
+Node * acquire_node(Ball ball) {
+	Node * node = (Node*)malloc(sizeof(Node));
+	node->_attempt = acquire_ball;
+	node->ball = ball;
+	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
+		node->children[i] = NULL;
+	}
+	return node;
+}
