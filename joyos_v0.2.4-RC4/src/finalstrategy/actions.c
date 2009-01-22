@@ -592,3 +592,49 @@ Status flagbox(Node * node) {
 	while(1);
 	return SUCCESS;
 }
+
+
+/*
+ * Attempts to use sharp distance sensors to determine where
+ * we are on the game board.
+ */
+Status get_abs_pos(Node* node) {
+	while(1){
+        int angle = (int)gyro_get_degrees();
+
+        //printf("\n%d  %d", angle, angle%360);
+
+        servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle));
+        pause(1000);
+        uint8_t x = irdist_read(23)/2.54;
+
+        servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle - 89));
+        pause(1000);
+        uint8_t y = irdist_read(23)/2.54;
+        printf("\n 1st is %d 2nd is %d gyro is %d", x, y, angle%360);
+
+        if (0 >= angle%360 && angle%360 < 90) {
+                global_position.x = y;
+                global_position.y = BOARD_Y - x;
+                //printf("\n x = %d, y = %d", (int) global_position.x, (int) global_position.y);
+        }
+        else if (90 >= angle%360 && angle%360 < 180) {
+                global_position.x = x;
+                global_position.y = y;
+                //printf("\n x = %d, y = %d", (int) global_position.x, (int) global_position.y);
+        }
+        else if (180 >= angle%360 && angle%360 < 270) {
+                global_position.x = BOARD_X - y;
+                global_position.y = x;
+                //printf("\n x = %d, y = %d", (int) global_position.x, (int) global_position.y);
+        }
+        else {
+                global_position.x = BOARD_X - y;
+                global_position.y = BOARD_Y - x;
+                //printf("\n x = %d, y = %d", (int) global_position.x, (int) global_position.y);
+        }
+        global_position.theta = angle%360;
+        //printf("\nGyro: %d", angle%360);
+	}
+        return SUCCESS;
+}

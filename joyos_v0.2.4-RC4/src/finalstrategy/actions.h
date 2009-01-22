@@ -9,5 +9,6 @@ Status dump_balls(Node* node);
 Status attempt_orient(Node* node);
 Status line_follow(Node * node);
 Status flagbox(Node * node);
+Status get_abs_pos(Node* node);
 
 #endif //_ACTIONS_H_
