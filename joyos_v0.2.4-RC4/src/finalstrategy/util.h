@@ -9,5 +9,7 @@ int degrees_to_servo_units(int degrees);
 void soft_stop_motors(int duration);
 void thrash();
 void calibrate_leds();
+void hard_break();
+int sing();
 
 #endif //_UTIL_H_

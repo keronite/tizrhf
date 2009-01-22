@@ -224,6 +224,12 @@ void calibrate_leds() {
 	led_filter_matrix[RIGHT_LED_INDEX] = (avg_high_read_r + avg_low_read_r)/2;
 }
 
+void hard_brake() {
+	printf("\nHard brake");
+	motor_brake(RIGHT_MOTOR);
+	motor_brake(LEFT_MOTOR);
+}
+
 int sing () {
 	while(1) {
 		beep(622,1*BEAT);//1
