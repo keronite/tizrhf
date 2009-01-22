@@ -12,5 +12,6 @@ void calibrate_leds();
 void hard_brake();
 int servo_units_to_degrees(int servo_angle);
 int sing();
+Position get_line_position(Line line);
 
 #endif //_UTIL_H_
