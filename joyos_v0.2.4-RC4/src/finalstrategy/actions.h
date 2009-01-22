@@ -12,5 +12,6 @@ Status flagbox(Node * node);
 Status line_search(Node * node);
 Status get_abs_pos(Node * node);
 Status acquire_ball(Node * node);
+Status get_pos_while_on_line(Node* node);
 
 #endif //_ACTIONS_H_
