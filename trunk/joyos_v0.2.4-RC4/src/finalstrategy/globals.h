@@ -38,7 +38,7 @@
 #define LIFT_SERVO 0
 #define FRONT_SERVO 1
 #define BACK_SERVO 2
-#define ARM_SERVO 3
+#define JAW_SERVO 3
 
 //Dumping mechanism constants
 #define SERVO_POS 511

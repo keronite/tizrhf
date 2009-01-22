@@ -24,6 +24,10 @@ void moving_filter();
 void turning_filter();
 void stop_filter();
 
+void moving_gather_filter();
+void moving_gather_state();
+Status drive_gather(float distance);
+
 void reset_pid_controller(float goal);
 float get_pid_goal();
 
@@ -284,6 +288,37 @@ float get_turn_angle(float start, float goal) {
  * Action drive(distance), moves forward a certain distance.
  */
 Status drive(float distance) {
+	printf("\nIn function drive()");
+	state = MOVING;
+	planstate = STOP_PLANNING;
+	target_distance = distance;
+	while(state != STOP) {
+		 switch (state)
+		 {
+			 case(PLANNING):
+				 break;
+
+			 case (MOVING):
+				 moving_state();
+				 break;
+
+			 case (TURNING):
+				 break;
+
+			 case (STOP):
+				 break;
+
+			default:
+				break;
+		 }
+	}
+	return SUCCESS;
+}
+
+/*
+ * Action drive(distance), moves forward a certain distance.
+ */
+Status drive_speed(float distance, float speed_scale) {
 	printf("\nIn function drive()");
 	state = MOVING;
 	planstate = STOP_PLANNING;
@@ -662,8 +697,97 @@ Status get_pos_while_on_line(Node* node, Line line) {
  */
  
 Status acquire_ball(Node * node) {
-	//Open servo
-	//Drive a little
-	//Close servo
+	servo_set_pos(JAW_SERVO, 350*1.5);//Open servo
+	pause(500);
+	//servo_set_pos(JAW_SERVO, 150*1.5);
+	drive_gather(12);//Drive a little
+	servo_set_pos(JAW_SERVO, 175*1.5);
+	float heading = gyro_get_degrees();
+	float deltaX = -6.0*sin(heading*RAD_TO_DEG);
+	float deltaY = 6.0*cos(heading*RAD_TO_DEG);
+	global_position.x += deltaX;
+	global_position.y += deltaY;
+	return SUCCESS;
 	//Stop
+}
+
+Status drive_gather(float distance) {
+	printf("\nIn function drive()");
+	state = MOVING;
+	planstate = STOP_PLANNING;
+	target_distance = distance;
+	while(state != STOP) {
+		 switch (state)
+		 {
+			 case(PLANNING):
+				 break;
+
+			 case (MOVING):
+				 moving_gather_state();
+				 break;
+
+			 case (TURNING):
+				 break;
+
+			 case (STOP):
+				 break;
+
+			default:
+				break;
+		 }
+	}
+	return SUCCESS;
+}
+
+void moving_gather_state() {
+	printf("\nMoving state");
+
+	int motor_multiplier = 1;
+
+	left_encoder_base = encoder_read(LEFT_ENCODER);
+	right_encoder_base = encoder_read(RIGHT_ENCODER);
+
+	if (target_distance < 0){
+		motor_multiplier = -1;
+	}
+	while(state == MOVING)
+	{
+		float input = gyro_get_degrees();
+
+		float output = update_pid_input(&controller, input);
+
+		motor_set_vel(RIGHT_MOTOR, motor_multiplier * (64 + (int)output + OFFSET_ESTIMATE));
+		motor_set_vel(LEFT_MOTOR, motor_multiplier * (64 - (int)output - OFFSET_ESTIMATE));
+
+		pause(20);
+
+		moving_gather_filter();
+	}
+}
+
+void moving_gather_filter() {
+
+	if (stop_press()) {
+		state = STOP;
+		return;
+	}
+	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
+	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
+	
+	int encoder_avg = (left_encoder_change + right_encoder_change)/2;
+	int encoder_goal = abs(CM_TO_TICKS(target_distance * 2.54));
+	
+	float ratio = (float)encoder_avg/(float)encoder_goal;
+	
+	servo_set_pos(JAW_SERVO, ratio*(150*1.5-350*1.5) + 350*1.5);
+
+	if (ratio >= 1) {
+		state = PLANNING;
+		if (planstate == STOP_PLANNING) {
+			state = STOP;
+			soft_stop_motors(200);
+			return;
+		}
+		hard_brake();
+	}
 }

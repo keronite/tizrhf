@@ -88,16 +88,19 @@ Node * create_tree() {
 	Node * flag = flag_node();
 	
 	Position p4;
-	p4.x = 18;
-	p4.y = 26;
+	p4.x = 14;
+	p4.y = 21;
 	p4.theta = 0;
 	Node * one_foot_out = travel_node(p4, false);
 	
 	Node * corner = corner_orient_node();
 	
+	Node * grab = acquire_node(LARGE_BALL0);
+	
 	//Attach nodes
 	add_child(root,corner);
 	add_child(corner,one_foot_out);
+	add_child(one_foot_out,grab);
 	//add_child(root,travel0);
 	//add_child(travel0,travel1);
 	//add_child(travel1,flag);
