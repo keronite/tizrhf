@@ -799,16 +799,22 @@ Status get_pos_while_on_line(Node* node) {
 		Orientation s1 = get_orientation(angle - a1);
 		Orientation s2 = get_orientation(angle - a2);
 		//printf("\n%d  %d", angle, angle%360);
+		float x, y;
+		x = 0; y = 0;
 
 		servo_set_pos(FRONT_SERVO, servo_set1);
 		pause(1000);
-		uint8_t x = irdist_read(23)/2.54;
+		for (int i = 0; i < 10; i++) {
+			x = (x*i + irdist_read(23)/2.54)/(i+1);
+		}
 
 		servo_set_pos(FRONT_SERVO, servo_set2);
 		pause(1000);
-		uint8_t y = irdist_read(23)/2.54;
+		for (int i = 0; i < 10; i++) {
+			y = (y*i + irdist_read(23)/2.54)/(i+1);
+		}
 		//printf("\n1st: %d, %s, 2nd: %d, %s", x, s1, y, s2);
-	
+
 
 		if (s1 == NORTH) {
 			global_position.y = BOARD_Y - x;
@@ -822,9 +828,9 @@ Status get_pos_while_on_line(Node* node) {
 		else if (s1 == WEST) {
 			global_position.x = y;
 		}
-		
-		global_position.x = 72-18;
-		global_position.y = 18;
+
+		//global_position.x = 72-18;
+		//global_position.y = 18;
 		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
 	return SUCCESS;
 }
