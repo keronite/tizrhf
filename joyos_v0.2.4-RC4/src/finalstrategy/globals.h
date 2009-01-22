@@ -16,8 +16,7 @@
 #define LEFT_ENCODER 25
 
 //Digital bump sensor readings
-#define TOP_BUMP 0
-#define BOTTOM_BUMP 1
+#define LIFT_BUMP 0
 
 //PID control constants.
 #define KP 1.75
