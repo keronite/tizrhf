@@ -90,7 +90,7 @@ Status travel_to (Node* node) {
 
 			case (STOP):
 				break;
-				
+
 			default:
 				break;
 		 }
@@ -303,7 +303,7 @@ Status drive(float distance) {
 
 			 case (STOP):
 				 break;
-				
+
 			default:
 				break;
 		 }
@@ -333,7 +333,7 @@ Status turn(float angle) {
 
 			 case (STOP):
 				 break;
-				
+
 			default:
 				break;
 		 }
@@ -348,18 +348,35 @@ Status turn(float angle) {
  */
 Status dump_balls(Node* node) {
 	printf("\nActuating servo.");
-	servo_set_pos(1, SERVO_POS);
+	servo_set_pos(LIFT_SERVO,600);
+	while(1) {
+		if (digital_read(TOP_BUMP)) {
+			servo_set_pos(LIFT_SERVO, 500);
+			break;
+		}
+	}
+
 	drive(6);
 	//motor_set_vel(RIGHT_MOTOR, 128);
 	//motor_set_vel(LEFT_MOTOR, 128);
 	uint32_t start = get_time();
 	while (get_time() - start < 5000) {
-		servo_set_pos(1, SERVO_POS2/2);
+		servo_set_pos(LIFT_SERVO, 0);
 		pause(500);
-		servo_set_pos(1, SERVO_POS - 10);
+		servo_set_pos(LIFT_SERVO, 620);
 		pause(500);
 	}
+	servo_set_pos(LIFT_SERVO, 300);
 	soft_stop_motors(500);
+
+	drive(-12);
+	servo_set_pos(LIFT_SERVO, 0);
+	while(1) {
+		if (digital_read(BOTTOM_BUMP)) {
+			servo_set_pos(LIFT_SERVO, 45);
+			break;
+		}
+	}
 	return SUCCESS;
 }
 
@@ -368,7 +385,7 @@ Status dump_balls(Node* node) {
  * beginning of a match.
  */
 Status attempt_orient(Node * node) {
-		
+
 	servo_set_pos(FRONT_SERVO, 255);
 	pause(1000);
 	uint16_t wall_front_dist = irdist_read(FRONT_SHARP);
@@ -376,7 +393,7 @@ Status attempt_orient(Node * node) {
 	if (wall_front_dist < 30) {
 		wall_front = true;
 	}
-		
+
 	servo_set_pos(FRONT_SERVO, 0);
 	pause(1000);
 	uint16_t wall_right_dist = irdist_read(FRONT_SHARP);
@@ -384,7 +401,7 @@ Status attempt_orient(Node * node) {
 	if (wall_right_dist < 30) {
 		wall_right = true;
 	}
-		
+
 	if (wall_front && wall_right) {
 		printf("\n180 %d %d", wall_front_dist, wall_right_dist);
 		gyro_set_degrees(180);
@@ -398,9 +415,9 @@ Status attempt_orient(Node * node) {
 		printf("\n0 %d %d", wall_front_dist, wall_right_dist);
 		gyro_set_degrees(0);
 	}
-	
+
 	go_click();
-	
+
 	return SUCCESS;
 }
 
@@ -408,7 +425,7 @@ Status attempt_orient(Node * node) {
 /*
  * Line search looks for the designated line using position estimates
  */
- 
+
  void moving_line_filter() {
 
 	if (stop_press()) {
@@ -417,12 +434,12 @@ Status attempt_orient(Node * node) {
 	}
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
-	
-	
+
+
 	bool left = filter_led(LEFT_LED);
 	bool middle = filter_led(MIDDLE_LED);
 	bool right = filter_led(RIGHT_LED);//IF FIND LINE, RETURN SUCCESS (DO BEST GUESS CHECK)
-	
+
 	if (left || middle || right) {
 		state = SUCCESS;
 	}
@@ -433,7 +450,7 @@ Status attempt_orient(Node * node) {
 	}
 }
 
- 
+
 void moving_line_state() {
 	printf("\nMoving line state");
 
@@ -470,7 +487,7 @@ Status line_search(Node * node) {
 			 case (MOVING):
 				 moving_line_state();
 				 break;
-				 
+
 			 default:
 				 break;
 		 }
@@ -493,21 +510,21 @@ bool filter_led(uint8_t led_port) {
 		case (RIGHT_LED):
 			index = RIGHT_LED_INDEX;
 			break;
-	
+
 	    case (MIDDLE_LED):
 			index = MIDDLE_LED_INDEX;
 			break;
-	
+
 	    case (LEFT_LED):
 			index = LEFT_LED_INDEX;
 			break;
-	
+
 	    default:
 			index = MIDDLE_LED_INDEX;
 			break;
 	}
-	
-	
+
+
 	uint8_t offset = (uint8_t)(led_filter_matrix[index][LED_OFFSET_INDEX]);
 	if (offset < 2) {offset = 2;}
 	uint16_t calibration = led_filter_matrix[index][LED_CALIBRATION_INDEX];
@@ -516,20 +533,20 @@ bool filter_led(uint8_t led_port) {
 	led_filter_matrix[index][offset] = current_reading; //Put the new sample in the array
 	offset = (offset + 1 - LED_RESERVED_INDICES)%(NUM_LED_SAMPLES) + LED_RESERVED_INDICES; //Increment offset and keep it in range
 	led_filter_matrix[index][LED_OFFSET_INDEX] = offset; //Store the new offset
-	
+
 	uint8_t sum = 0; //Count true samples
 	for(uint8_t i = LED_RESERVED_INDICES; i < LED_RESERVED_INDICES + NUM_LED_SAMPLES; i++) {
 		if (led_filter_matrix[index][i] != 0) {
 			sum++;
 		}
 	}
-	
+
 	if (sum > NUM_LED_SAMPLES/2) {
 		return false; //CHANGEME!!!!!
 	} else {
 		return true;
 	}
-	
+
 }
 
 void line_follow_filter() {
@@ -544,40 +561,40 @@ Status line_follow(Node * node) {
 	while(1) {
 		//MSB->LSB, left, middle, right
 		  switch (led_reading)
-		  {		
+		  {
 		    case (1): //001
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED + LINE_OFFSET_STRONG);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED - LINE_OFFSET_STRONG);
 			  printf("\nHard Right");
 		      break;
-		
+
 		    case (2): //010
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED);
 			  printf("\nStraight");
 		      break;
-		
+
 			case (3): //011
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED + LINE_OFFSET_WEAK);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED - LINE_OFFSET_WEAK);
 			  printf("\nSoft Right");
 		      break;
-		
+
 		    case (4): //100
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - LINE_OFFSET_STRONG);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + LINE_OFFSET_STRONG);
 			  printf("\nHard Left");
 		      break;
-		
+
 		    case (6): //110
 		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - LINE_OFFSET_WEAK);
 		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + LINE_OFFSET_WEAK);
 			  printf("\nSoft Left");
 		      break;
 		  }
-		  
+
 		pause(10);
-		
+
 		line_follow_filter();
 	}
 	return SUCCESS;
@@ -637,4 +654,11 @@ Status get_abs_pos(Node* node) {
         //printf("\nGyro: %d", angle%360);
 	}
         return SUCCESS;
+}
+
+/*
+ * Sharp-distance positioning when on a line
+ */
+Status get_pos_while_on_line(Node* node, Line line) {
+	return SUCCESS;
 }

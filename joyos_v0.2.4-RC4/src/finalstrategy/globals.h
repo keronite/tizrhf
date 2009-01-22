@@ -15,6 +15,10 @@
 #define RIGHT_ENCODER 24
 #define LEFT_ENCODER 25
 
+//Digital bump sensor readings
+#define TOP_BUMP 0
+#define BOTTOM_BUMP 1
+
 //PID control constants.
 #define KP 1.75
 #define KD 0
@@ -33,6 +37,8 @@
 //Servo ports
 #define LIFT_SERVO 0
 #define FRONT_SERVO 1
+#define BACK_SERVO 2
+#define ARM_SERVO 3
 
 //Dumping mechanism constants
 #define SERVO_POS 511
@@ -63,6 +69,8 @@
 #define LED_CALIBRATION_INDEX 1
 #define LINE_OFFSET_WEAK 5
 #define LINE_OFFSET_STRONG 10
+
+#define BEAT 100
 
 typedef struct {
 	float x;

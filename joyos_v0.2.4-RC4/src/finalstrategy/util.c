@@ -225,3 +225,162 @@ void calibrate_leds() {
 	led_filter_matrix[MIDDLE_LED_INDEX][LED_CALIBRATION_INDEX] = (avg_high_read_m + avg_low_read_m)/2;
 	led_filter_matrix[RIGHT_LED_INDEX][LED_CALIBRATION_INDEX] = (avg_high_read_r + avg_low_read_r)/2;
 }
+
+int sing () {
+	while(1) {
+		beep(622,1*BEAT);//1
+		pause(1*BEAT);
+
+		beep(622,1*BEAT);//2
+		pause(1*BEAT);
+
+		beep(622,2*BEAT);//3
+		pause(2*BEAT);
+
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+
+		beep(622,2*BEAT);//6
+		pause(2*BEAT);
+
+		beep(523,4*BEAT);
+		pause(4*BEAT);
+
+		beep(523,1*BEAT);
+		pause(1*BEAT);
+
+		beep(523,1*BEAT);
+		pause(1*BEAT);
+
+		beep(622,2*BEAT);//10
+		pause(2*BEAT);
+
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+
+		beep(622,2*BEAT);
+		pause(2*BEAT);
+
+		beep(523,4*BEAT);
+		pause(4*BEAT);
+
+		beep(784,2*BEAT); //15
+		pause(2*BEAT);
+
+		beep(699,2*BEAT);
+		pause(2*BEAT);
+
+		beep(784,4*BEAT);
+		pause(4*BEAT);
+
+		beep(622,1*BEAT);//part 2: 1
+		pause(1*BEAT);
+
+		beep(622,1*BEAT);//2
+		pause(1*BEAT);
+
+		beep(622,2*BEAT);//3
+		pause(2*BEAT);
+
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+
+		beep(622,1*BEAT);
+		pause(1*BEAT);
+
+		beep(622,2*BEAT);//6
+		pause(2*BEAT);
+
+		beep(523,4*BEAT);
+		pause(4*BEAT);
+
+		beep(784,4*BEAT);
+		pause(4*BEAT);
+
+		beep(698,4*BEAT);
+		pause(4*BEAT);
+
+		beep(622,4*BEAT);
+		pause(4*BEAT);
+
+		beep(698,6*BEAT);
+		pause(6*BEAT);
+
+		beep(698,1*BEAT);//part 3: 1
+		pause(1*BEAT);
+
+		beep(698,1*BEAT);//2
+		pause(1*BEAT);
+
+		beep(698,2*BEAT);//3
+		pause(2*BEAT);
+
+		beep(698,1*BEAT);
+		pause(1*BEAT);
+
+		beep(698,1*BEAT);
+		pause(1*BEAT);
+
+		beep(698,2*BEAT);//6
+		pause(2*BEAT);
+
+		beep(587,4*BEAT);
+		pause(4*BEAT);
+
+		beep(784,4*BEAT);
+		pause(4*BEAT);
+
+		beep(698,4*BEAT);
+		pause(4*BEAT);
+
+		beep(622,4*BEAT);
+		pause(4*BEAT);
+
+		beep(587,4*BEAT);
+		pause(6*BEAT);
+
+		beep(523, 4*BEAT);
+		pause(4*BEAT);
+
+		beep(523, 2*BEAT);
+		pause(2*BEAT);
+
+		beep(784, 2*BEAT);
+		pause(2*BEAT);
+
+		beep(923, 2*BEAT);
+		pause(2*BEAT);
+
+		beep(880, 6*BEAT);
+		pause(6*BEAT);
+
+		beep(523, 4*BEAT);
+		pause(4*BEAT);
+
+		beep(523, 2*BEAT);
+		pause(2*BEAT);
+
+		beep(784, 2*BEAT);
+		pause(2*BEAT);
+
+		beep(923, 2*BEAT);
+		pause(2*BEAT);
+
+		beep(880, 4*BEAT);
+		pause(4*BEAT);
+
+		beep(1175, 2*BEAT);
+		pause(2*BEAT);
+
+		beep(1245, 4*BEAT);
+		pause(4*BEAT);
+	}
+
+	return 0;
+}
