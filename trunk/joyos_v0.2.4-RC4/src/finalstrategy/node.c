@@ -80,3 +80,12 @@ Status test_attempt(Node * node) {
 		}
 	}
 }
+
+Node * flag_node() {
+	Node * node = (Node*)malloc(sizeof(Node));
+	node->_attempt = flagbox;
+	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
+		node->children[i] = NULL;
+	}
+	return node;
+}

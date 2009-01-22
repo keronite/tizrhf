@@ -22,7 +22,7 @@
 
 //Motor speeds
 #define FORWARD_SPEED 164
-#define BACKWARD_SPEED 128
+#define BACKWARD_SPEED 64
 #define TURNING_SPEED 164
 
 //Sharp distance sensor
