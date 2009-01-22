@@ -24,9 +24,9 @@ void moving_filter();
 void turning_filter();
 void stop_filter();
 
-void moving_gather_filter();
-void moving_gather_state();
-Status drive_gather(float distance);
+void moving_gather_filter(float start_servo, float end_servo, float scale);
+void moving_gather_state(float start_servo, float end_servo, float scale);
+Status drive_gather(float distance, float start_servo, float end_servo, float scale);
 
 void reset_pid_controller(float goal);
 float get_pid_goal();
@@ -198,6 +198,8 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 				planstate = STOP_PLANNING;
 			}
 			target_distance = dist;
+			//printf("\n dist = %f", (double) dist);
+			//go_click();
 			state = MOVING;
 			break;
 
@@ -384,14 +386,16 @@ Status turn(float angle) {
 Status dump_balls(Node* node) {
 	printf("\nActuating servo.");
 	servo_set_pos(LIFT_SERVO,600);
+	pause(500);
 	while(1) {
-		if (digital_read(TOP_BUMP)) {
+		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, 500);
 			break;
 		}
 	}
 
-	drive(6);
+	//servo_set_pos(JAW_SERVO, 350*1.5);
+	drive_gather(6,175,350,3);
 	//motor_set_vel(RIGHT_MOTOR, 128);
 	//motor_set_vel(LEFT_MOTOR, 128);
 	/*uint32_t start = get_time();
@@ -402,12 +406,13 @@ Status dump_balls(Node* node) {
 		pause(500);
 	}*/
 	servo_set_pos(LIFT_SERVO, 300);
-	soft_stop_motors(500);
-
+	soft_stop_motors(1);
+	
 	drive(-12);
+	servo_set_pos(JAW_SERVO, 175*1.5);
 	servo_set_pos(LIFT_SERVO, 0);
 	while(1) {
-		if (digital_read(BOTTOM_BUMP)) {
+		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, 45);
 			break;
 		}
@@ -438,16 +443,24 @@ Status attempt_orient(Node * node) {
 	}
 
 	if (wall_front && wall_right) {
-		printf("\n-180 %d %d", wall_front_dist, wall_right_dist);
+		//printf("\n-180 %d %d", wall_front_dist, wall_right_dist);
+		global_position.x = 8.5;
+		global_position.y = 10;
 		gyro_set_degrees(-180);
 	} else if (wall_front && !wall_right) {
-		printf("\n90 %d %d", wall_front_dist, wall_right_dist);
+		//printf("\n90 %d %d", wall_front_dist, wall_right_dist);
+		global_position.x = 11;
+		global_position.y = 8;
 		gyro_set_degrees(90);
 	} else if (!wall_front && wall_right) {
-		printf("\n-90 %d %d", wall_front_dist, wall_right_dist);
+		//printf("\n-90 %d %d", wall_front_dist, wall_right_dist);
+		global_position.x = 7.5;
+		global_position.y = 8;
 		gyro_set_degrees(-90);
 	} else {
-		printf("\n0 %d %d", wall_front_dist, wall_right_dist);
+		//printf("\n0 %d %d", wall_front_dist, wall_right_dist);
+		global_position.x = 8;
+		global_position.y = 6.5;
 		gyro_set_degrees(0);
 	}
 
@@ -465,8 +478,8 @@ Status attempt_orient(Node * node) {
 		state = STOP;
 		return;
 	}
-	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
-	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
+//	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
+//	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
 
 
 	bool left = filter_led(LEFT_LED);
@@ -700,18 +713,20 @@ Status acquire_ball(Node * node) {
 	servo_set_pos(JAW_SERVO, 350*1.5);//Open servo
 	pause(500);
 	//servo_set_pos(JAW_SERVO, 150*1.5);
-	drive_gather(12);//Drive a little
+	drive_gather(12,350,150,1);//Drive a little
 	servo_set_pos(JAW_SERVO, 175*1.5);
 	float heading = gyro_get_degrees();
-	float deltaX = -6.0*sin(heading*RAD_TO_DEG);
-	float deltaY = 6.0*cos(heading*RAD_TO_DEG);
+	float deltaX = -12.0*sin(heading/(float)RAD_TO_DEG);
+	float deltaY = 12.0*cos(heading/(float)RAD_TO_DEG);
 	global_position.x += deltaX;
 	global_position.y += deltaY;
+	//printf("\n x = %f y = %f", global_position.x, global_position.y);
+	//go_click();
 	return SUCCESS;
 	//Stop
 }
 
-Status drive_gather(float distance) {
+Status drive_gather(float distance, float start_servo, float end_servo, float scale) {
 	printf("\nIn function drive()");
 	state = MOVING;
 	planstate = STOP_PLANNING;
@@ -723,7 +738,7 @@ Status drive_gather(float distance) {
 				 break;
 
 			 case (MOVING):
-				 moving_gather_state();
+				 moving_gather_state(start_servo,end_servo,scale);
 				 break;
 
 			 case (TURNING):
@@ -739,7 +754,7 @@ Status drive_gather(float distance) {
 	return SUCCESS;
 }
 
-void moving_gather_state() {
+void moving_gather_state(float start_servo, float end_servo, float scale) {
 	printf("\nMoving state");
 
 	int motor_multiplier = 1;
@@ -756,16 +771,16 @@ void moving_gather_state() {
 
 		float output = update_pid_input(&controller, input);
 
-		motor_set_vel(RIGHT_MOTOR, motor_multiplier * (64 + (int)output + OFFSET_ESTIMATE));
-		motor_set_vel(LEFT_MOTOR, motor_multiplier * (64 - (int)output - OFFSET_ESTIMATE));
+		motor_set_vel(RIGHT_MOTOR, motor_multiplier * scale * (64 + (int)output + OFFSET_ESTIMATE));
+		motor_set_vel(LEFT_MOTOR, motor_multiplier * scale * (64 - (int)output - OFFSET_ESTIMATE));
 
 		pause(20);
 
-		moving_gather_filter();
+		moving_gather_filter(start_servo, end_servo,scale);
 	}
 }
 
-void moving_gather_filter() {
+void moving_gather_filter(float start_servo, float end_servo, float scale) {
 
 	if (stop_press()) {
 		state = STOP;
@@ -779,7 +794,7 @@ void moving_gather_filter() {
 	
 	float ratio = (float)encoder_avg/(float)encoder_goal;
 	
-	servo_set_pos(JAW_SERVO, ratio*(150*1.5-350*1.5) + 350*1.5);
+	servo_set_pos(JAW_SERVO, ratio*(end_servo*1.5-start_servo*1.5) + start_servo*1.5);
 
 	if (ratio >= 1) {
 		state = PLANNING;

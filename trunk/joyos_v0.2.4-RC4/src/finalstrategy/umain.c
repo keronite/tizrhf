@@ -26,7 +26,7 @@ int usetup () {
 	calibrate_leds();
 	
 	global_position.x = 8;
-	global_position.y = 8;
+	global_position.y = 6.5;
 	return 0;
 }
 
@@ -45,6 +45,8 @@ int umain () {
 				Status s = attempt(current_node->children[i]);
 				if (s == SUCCESS) {
 					current_node = current_node->children[i];
+					//printf("\nx=%f, y=%f",global_position.x,global_position.y);
+					//go_click();
 					break;
 				}
 			}
@@ -80,7 +82,7 @@ Node * create_tree() {
 	Node * travel1 = travel_node(p2, false);
 	
 	Position p3;
-	p3.x = 24;
+	p3.x = 22;
 	p3.y = 54;
 	p3.theta = 0;
 	Node * travel2 = travel_node(p3, false);
@@ -88,8 +90,8 @@ Node * create_tree() {
 	Node * flag = flag_node();
 	
 	Position p4;
-	p4.x = 14;
-	p4.y = 21;
+	p4.x = 14.5;
+	p4.y = 21.5;
 	p4.theta = 0;
 	Node * one_foot_out = travel_node(p4, false);
 	
@@ -97,14 +99,36 @@ Node * create_tree() {
 	
 	Node * grab = acquire_node(LARGE_BALL0);
 	
+	Position p5;
+	p5.x = 48;
+	p5.y = 24;
+	p5.theta = -135;
+	
+	Node * position_to_goal = travel_node(p5,true);
+	
+	Position p6;
+	p6.x = 60;
+	p6.y = 12;
+	p6.theta = -150;
+	
+	Node * position_to_goal2 = travel_node(p6,false);
+	
+	Node * goal = goal_node();
+	
 	//Attach nodes
 	add_child(root,corner);
 	add_child(corner,one_foot_out);
 	add_child(one_foot_out,grab);
+	add_child(grab,position_to_goal);
+	//add_child(position_to_goal,position_to_goal2);
+	add_child(position_to_goal,goal);
+	
 	//add_child(root,travel0);
 	//add_child(travel0,travel1);
 	//add_child(travel1,flag);
 	//add_child(travel0,travel1);
+	
+	
 	
 	return root;
 }
