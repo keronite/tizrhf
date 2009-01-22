@@ -228,7 +228,7 @@ void moving_filter() {
 			soft_stop_motors(200);
 			return;
 		}
-		soft_stop_motors(200);
+		hard_brake();
 	}
 }
 
@@ -390,7 +390,7 @@ Status attempt_orient(Node * node) {
 	pause(1000);
 	uint16_t wall_front_dist = irdist_read(FRONT_SHARP);
 	bool wall_front = false;
-	if (wall_front_dist < 30) {
+	if (wall_front_dist < 50) {
 		wall_front = true;
 	}
 
@@ -398,25 +398,23 @@ Status attempt_orient(Node * node) {
 	pause(1000);
 	uint16_t wall_right_dist = irdist_read(FRONT_SHARP);
 	bool wall_right = false;
-	if (wall_right_dist < 30) {
+	if (wall_right_dist < 50) {
 		wall_right = true;
 	}
 
 	if (wall_front && wall_right) {
-		printf("\n180 %d %d", wall_front_dist, wall_right_dist);
-		gyro_set_degrees(180);
+		printf("\n-180 %d %d", wall_front_dist, wall_right_dist);
+		gyro_set_degrees(-180);
 	} else if (wall_front && !wall_right) {
-		printf("\n-90 %d %d", wall_front_dist, wall_right_dist);
-		gyro_set_degrees(-90);
-	} else if (!wall_front && wall_right) {
 		printf("\n90 %d %d", wall_front_dist, wall_right_dist);
 		gyro_set_degrees(90);
+	} else if (!wall_front && wall_right) {
+		printf("\n-90 %d %d", wall_front_dist, wall_right_dist);
+		gyro_set_degrees(-90);
 	} else {
 		printf("\n0 %d %d", wall_front_dist, wall_right_dist);
 		gyro_set_degrees(0);
 	}
-
-	go_click();
 
 	return SUCCESS;
 }
@@ -655,4 +653,5 @@ Status get_pos_while_on_line(Node* node, Line line) {
 		uint8_t y = irdist_read(23)/2.54;
 		printf("\n 1st is %d 2nd is %d gyro is %d", x, y, angle%360);
 	}
+	return SUCCESS;
 }
