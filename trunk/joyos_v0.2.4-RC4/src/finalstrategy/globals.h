@@ -42,7 +42,7 @@
 //Dumping mechanism constants
 #define DUMP_FORWARD_DIST 7.0
 #define DUMP_REVERSE_DIST -12.0
-#define DUMPING_SPEED_MULT 3
+#define DUMPING_SPEED_MULT 2.5
 #define DUMPING_REV_SPEED_MULT 1
 
 //Numeric constants

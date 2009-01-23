@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 
-#define TURNING_THRESHOLD 3
+#define TURNING_THRESHOLD 1.5
 
 #define OFFSET_ESTIMATE -5
 
@@ -121,8 +121,8 @@ void moving_state(float scale, float start, float end, float dist, Line line, vo
 
 		float output = update_pid_input(&controller, input);
 
-		motor_set_vel(RIGHT_MOTOR, motor_multiplier * scale * (FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
-		motor_set_vel(LEFT_MOTOR, motor_multiplier * scale * (FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
+		motor_set_vel(RIGHT_MOTOR, (float)motor_multiplier * scale * (float)(FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
+		motor_set_vel(LEFT_MOTOR, (float)motor_multiplier * scale * (float)(FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
 
 		pause(20);
 
@@ -353,8 +353,8 @@ Status dump_balls(Node* node) {
 
 ///////
 
-	float goal_x = 8;
-	float goal_y = 8;
+	float goal_x = 57.5;
+	float goal_y = 15.5;
 	float goal_theta = 0;
 
 	uint8_t use_theta = false;
@@ -365,7 +365,7 @@ Status dump_balls(Node* node) {
 	gp = &goal;
 	init.x = global_position.x;
 	init.y = global_position.y;
-	init.theta = global_position.theta;
+	init.theta = gyro_get_degrees();
 	goal.x = goal_x;
 	goal.y = goal_y;
 	goal.theta = goal_theta;
@@ -603,15 +603,13 @@ Status get_abs_pos(Node* node) {
  */
 
 Status acquire_ball(Node * node) {
-	servo_set_pos(JAW_SERVO, JAW_OPEN);//Open servo
-	pause(500);
 	//servo_set_pos(JAW_SERVO, 150*1.5);
 	//!!!!!!!!
 	
 	Position p = get_ball_position(node->ball);
-	float angle = gyro_get_degrees();
-	float goal_x = p.x + sin(2.5*angle/RAD_TO_DEG);
-	float goal_y = p.y - cos(2.5*angle/RAD_TO_DEG);
+	//float angle = gyro_get_degrees();
+	float goal_x = p.x;// + 2.0*sin(angle/RAD_TO_DEG);
+	float goal_y = p.y;// - 2.0*cos(angle/RAD_TO_DEG);
 	float goal_theta = 0;
 
 	uint8_t use_theta = false;
@@ -639,11 +637,21 @@ Status acquire_ball(Node * node) {
 				break;
 
 			case (MOVING):
-				moving_state(.75,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
+				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
+				//go_click();
+				target_distance -= 2.0;
+				goal.x += 2.0*sin(target_angle/RAD_TO_DEG);
+				goal.y -= 2.0*cos(target_angle/RAD_TO_DEG);
+				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
+				//go_click();
+				moving_state(.5,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
 				break;
 
 			case (TURNING):
 				turning_state();
+				pause(250);
+				servo_set_pos(JAW_SERVO, JAW_OPEN);//Open servo
+				pause(500);
 				break;
 
 			case (STOP):
@@ -717,7 +725,7 @@ typedef enum {NORTH, SOUTH, WEST, EAST} Orientation;
 Orientation get_orientation (int angle);
 
 Status get_pos_while_on_line(Node* node) {
-		turn(170);
+		turn(-210);
 		int angle = (int)gyro_get_degrees();
 		int servo_set1 = degrees_to_servo_units(-angle);
 		int servo_set2 = degrees_to_servo_units(-angle - 90);
