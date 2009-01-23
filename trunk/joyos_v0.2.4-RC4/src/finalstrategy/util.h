@@ -2,6 +2,7 @@
 #define _UTIL_H_
 
 #include <../src/finalstrategy/globals.h>
+#include <joyos.h>
 
 Position get_ball_position(Ball ball);
 float clamp (float val, float min, float max);
@@ -13,5 +14,6 @@ void hard_brake();
 int servo_units_to_degrees(int servo_angle);
 int sing();
 Position get_line_position(Line line);
+uint8_t get_led_readings();
 
 #endif //_UTIL_H_
