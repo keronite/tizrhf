@@ -353,8 +353,8 @@ Status dump_balls(Node* node) {
 
 ///////
 
-	float goal_x = 57.5;
-	float goal_y = 15.5;
+	float goal_x = 56.5;
+	float goal_y = 16.5;
 	float goal_theta = 0;
 
 	uint8_t use_theta = false;
@@ -478,10 +478,11 @@ Status attempt_orient(Node * node) {
 	uint8_t leds = get_led_readings();
 
 	if (leds != 0) {
-		if (get_line_position(line).x + 6.0 > global_position.x - (left_encoder_change + right_encoder_change)/2) {
+	//if (maximum x for line) > (our position)
+	//60 > our position
+		if (CM_TO_TICKS((get_line_position(line).x + 6.0)*2.54) > CM_TO_TICKS(global_position.x*2.54) - (left_encoder_change + right_encoder_change)/2) {
 			state = FOUND;
 			soft_stop_motors(200);
-			pause(1000);
 		}
 	}
 }
@@ -504,8 +505,8 @@ void moving_line_state(Line line) {
 
 		float output = update_pid_input(&controller, input);
 
-		motor_set_vel(RIGHT_MOTOR, motor_multiplier * (FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
-		motor_set_vel(LEFT_MOTOR, motor_multiplier * (FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
+		motor_set_vel(RIGHT_MOTOR, motor_multiplier * .6 *(FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
+		motor_set_vel(LEFT_MOTOR, motor_multiplier * .6 * (FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
 
 		pause(50);
 
@@ -725,7 +726,7 @@ typedef enum {NORTH, SOUTH, WEST, EAST} Orientation;
 Orientation get_orientation (int angle);
 
 Status get_pos_while_on_line(Node* node) {
-		turn(-210);
+		turn(-110);
 		int angle = (int)gyro_get_degrees();
 		int servo_set1 = degrees_to_servo_units(-angle);
 		int servo_set2 = degrees_to_servo_units(-angle - 90);
@@ -768,7 +769,7 @@ Status get_pos_while_on_line(Node* node) {
 		//global_position.x = 72-18;
 		//global_position.y = 18;
 		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
-		go_click();
+		//go_click();
 	return SUCCESS;
 }
 
