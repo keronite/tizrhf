@@ -65,32 +65,19 @@ Node * create_tree() {
 	
 	Node * corner = corner_orient_node();
 	
-	Position p4;
-	p4.x = 14.5;
-	p4.y = 21.5;
-	p4.theta = 0;
-	Node * one_foot_out = travel_node(p4, false);
+	//Node * one_foot_out = travel_node(14.5,21.5,0, false);
 	
-	Node * grab = acquire_node(LARGE_BALL0);
+	Node * grab = acquire_node(LARGE_BALL2);
 	
-	Position p5;
-	p5.x = 48;
-	p5.y = 24;
-	p5.theta = -135;
 	
-	Node * position_to_goal = travel_node(p5,true);
+	Node * position_to_goal = travel_node(48,24,-135,true);
 	
 	Node * goal = goal_node();
 	
 	Node * posn = posn_node();
 	//REPOSITION
 	
-	Position pFlag;
-	pFlag.x = 54;
-	pFlag.y = 60-16+7;
-	pFlag.theta=90;
-	
-	Node * position_for_flag = travel_node(pFlag,true);
+	Node * position_for_flag = travel_node(54,60-16+7,90,false);
 	
 	Node * line_find = find_line_node(FLAGBOX_LINE_TOP);
 	
@@ -98,8 +85,10 @@ Node * create_tree() {
 	
 	//Attach nodes
 	add_child(root,corner);
-	add_child(corner,one_foot_out);
-	add_child(one_foot_out,grab);
+	//add_child(corner,one_foot_out);
+	//add_child(one_foot_out,grab);
+	add_child(corner,grab);
+	
 	add_child(grab,position_to_goal);
 	add_child(position_to_goal,goal);
 	add_child(goal,posn);

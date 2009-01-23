@@ -12,9 +12,13 @@ Status attempt(Node* node) {
 }
 
 
-Node * travel_node(Position destination, uint8_t use_theta) {
+Node * travel_node(float x, float y, float theta, uint8_t use_theta) {
 	Node * node = (Node*)malloc(sizeof(Node));
 	node->_attempt = travel_to;
+	Position destination;
+	destination.x = x;
+	destination.y = y;
+	destination.theta = theta;
 	node->position = destination;
 	node->use_theta = use_theta;
 	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {

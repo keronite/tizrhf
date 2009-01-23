@@ -17,7 +17,7 @@ struct Node {
 	Node* children [NODE_CHILDREN];
 };
 
-Node * travel_node(Position destination, uint8_t use_theta);
+Node * travel_node(float x, float y, float theta, uint8_t use_theta);
 Node * flag_node();
 Node * acquire_node(Ball ball);
 Node * goal_node();
