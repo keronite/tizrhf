@@ -40,10 +40,10 @@
 #define JAW_SERVO 3
 
 //Dumping mechanism constants
-#define SERVO_POS 511
-#define SERVO_POS2 500
-#define BACK_UP_DIST -6.0
-#define DUMPING_SPEED 256
+#define DUMP_FORWARD_DIST 7.0
+#define DUMP_REVERSE_DIST -12.0
+#define DUMPING_SPEED_MULT 3
+#define DUMPING_REV_SPEED_MULT 1
 
 //Numeric constants
 #define RAD_TO_DEG 57.2957795
@@ -64,6 +64,23 @@
 #define LEFT_LED_INDEX 2
 #define LINE_OFFSET_WEAK 5
 #define LINE_OFFSET_STRONG 10
+
+//Jaw Servo
+#define JAW_OPEN 525
+#define JAW_CLOSED 262
+#define JAW_INSIDE 225
+
+//Lift servo
+#define LIFT_RAISE 600
+#define LIFT_TOP 500
+#define LIFT_MID 300
+#define LIFT_BOTTOM 45
+#define LIFT_LOWER 0
+
+//Ball acquire
+#define ACQUIRE_DISTANCE 12.0
+#define ACQUIRE_MULT 1
+
 
 #define BEAT 100
 

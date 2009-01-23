@@ -13,7 +13,6 @@
 
 enum state_enum {PLANNING, MOVING, TURNING, STOP, FOUND, END} state;
 enum planning_state_enum {INITIAL_REANGLE, FORWARD, END_REANGLE, STOP_PLANNING} planstate;
-typedef enum {NORTH, SOUTH, WEST, EAST} Orientation;
 
 void planning_state(Position *ip, Position *gp, bool do_last_turn);
 void moving_state(float scale);
@@ -30,28 +29,18 @@ void moving_gather_state(float start_servo, float end_servo, float scale);
 Status drive_gather(float distance, float start_servo, float end_servo, float scale);
 
 void reset_pid_controller(float goal);
-float get_pid_goal();
-
-void soft_stop_motors(int duration);
 
 float target_angle; // target angle variable to be used by all turning functions
 float target_distance; // target distance variable to be used by all moving functions
 
 struct pid_controller controller;
 
-//uint32_t state_time;
-
 uint16_t left_encoder_base, right_encoder_base;
 
-float poliwhirl(float angle);
 float get_turn_angle(float start, float goal);
 
 Status drive(float distance, float scale);
 Status turn(float angle);
-Status dump_balls(Node* node);
-Orientation get_orientation (int angle);
-
-bool filter_led(uint8_t led_port);
 
 /*
  * Action travel_to, moves to the location specified in the node.
@@ -107,14 +96,14 @@ Status travel_to (Node* node) {
 
 void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 	while(state == PLANNING) {
-		printf("\nPlanning state");
-		pause(100);
+		//printf("\nPlanning state");
+		//pause(100);
 		float init_angle = gyro_get_degrees();
 		float dist = sqrt(pow((ip->x - gp->x), 2)+pow((ip->y - gp->y), 2));
-		float poli = atan2(-1*(gp->x - ip->x),(gp->y - ip->y))*RAD_TO_DEG;
+		float travel_angle = atan2(-1*(gp->x - ip->x),(gp->y - ip->y))*RAD_TO_DEG;
 
 		target_distance = dist;
-		planning_filter(init_angle, dist, poli, gp->theta, do_last_turn);
+		planning_filter(init_angle, dist, travel_angle, gp->theta, do_last_turn);
 	}
 }
 
@@ -169,30 +158,21 @@ void stop_state(Position goal) {
 	global_position.y = goal.y;
 }
 
-void reset_pid_controller(float goal) {
-	init_pid(&controller, KP, KI, KD, NULL, NULL);
-	controller.goal = goal;
-}
-
-float get_pid_goal() {
-	return controller.goal;
-}
-
-void planning_filter(float init_angle, float dist, float poli, float end_angle, bool do_last_turn) {
+void planning_filter(float init_angle, float dist, float travel_angle, float end_angle, bool do_last_turn) {
 	while (state==PLANNING) {
 		switch (planstate) {
 
 		case(INITIAL_REANGLE):
-			printf("\nTurning to %f", (double) poli);
-			pause(100);
-			target_angle = poli;
+			//printf("\nTurning to %f", (double) travel_angle);
+			//pause(100);
+			target_angle = travel_angle;
 			planstate = FORWARD;
 			state = TURNING;
 			break;
 
 		case(FORWARD):
-			printf("\nMoving forward %f inches", (double) dist);
-			pause(100);
+			//printf("\nMoving forward %f inches", (double) dist);
+			//pause(100);
 			if (do_last_turn) {
 				planstate = END_REANGLE;
 			}
@@ -204,8 +184,8 @@ void planning_filter(float init_angle, float dist, float poli, float end_angle, 
 			break;
 
 		case(END_REANGLE):
-			printf("\nTurning to %f", (double) end_angle);
-			pause(100);
+			//printf("\nTurning to %f", (double) end_angle);
+			//pause(100);
 			target_angle = end_angle;
 			planstate = STOP_PLANNING;
 			state = TURNING;
@@ -261,15 +241,6 @@ void turning_filter() {
 
 void stop_filter() {
 	return;
-}
-
-float poliwhirl(float angle) {
-	float x = acos(angle);
-	x = x*RAD_TO_DEG;
-	if (x < 0) {
-		x = x + 360.0;
-	}
-	return x;
 }
 
 float get_turn_angle(float start, float goal) {
@@ -378,48 +349,58 @@ Status turn(float angle) {
 	return SUCCESS;
 }
 
+
+void reset_pid_controller(float goal) {
+	init_pid(&controller, KP, KI, KD, NULL, NULL);
+	controller.goal = goal;
+}
+
+
+//////////////////////////////////////////////////////////////////
+//##############################################################//
+//##############################################################//
+//##############################################################//
+//##############################################################//
+//##############################################################//
+//////////////////////////////////////////////////////////////////
+
+
+
+/////////////////////////////////////////////////////////////////
 /*
  * dump_balls(), to be called when we wish to actuate
  * servo and deposit balls into goal. Assumes we are near
  * our goal.
  */
 Status dump_balls(Node* node) {
-	printf("\nActuating servo.");
-	servo_set_pos(LIFT_SERVO,600);
+
+	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
 	pause(500);
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
-			servo_set_pos(LIFT_SERVO, 500);
+			servo_set_pos(LIFT_SERVO, LIFT_TOP);
 			break;
 		}
 	}
 
-	//servo_set_pos(JAW_SERVO, 350*1.5);
-	drive_gather(6,175,350,3);
-	//motor_set_vel(RIGHT_MOTOR, 128);
-	//motor_set_vel(LEFT_MOTOR, 128);
-	/*uint32_t start = get_time();
-	while (get_time() - start < 5000) {
-		servo_set_pos(LIFT_SERVO, 0);
-		pause(500);
-		servo_set_pos(LIFT_SERVO, 620);
-		pause(500);
-	}*/
-	servo_set_pos(LIFT_SERVO, 300);
+	drive_gather(DUMP_FORWARD_DIST,JAW_CLOSED,JAW_OPEN,DUMPING_SPEED_MULT);
+
+	servo_set_pos(LIFT_SERVO, LIFT_MID);
 	soft_stop_motors(1);
 
-	drive(-12, 1);
-	servo_set_pos(JAW_SERVO, 175*1.5);
-	servo_set_pos(LIFT_SERVO, 0);
+	drive(DUMP_REVERSE_DIST, DUMPING_REV_SPEED_MULT);
+	servo_set_pos(JAW_SERVO, JAW_CLOSED);
+	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
-			servo_set_pos(LIFT_SERVO, 45);
+			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
 			break;
 		}
 	}
 	return SUCCESS;
 }
 
+///////////////////////////////////////////////////////////////////
 /*
  * Determines which cardinal direction we face at the
  * beginning of a match.
@@ -443,22 +424,18 @@ Status attempt_orient(Node * node) {
 	}
 
 	if (wall_front && wall_right) {
-		//printf("\n-180 %d %d", wall_front_dist, wall_right_dist);
 		global_position.x = 8.5;
 		global_position.y = 10;
 		gyro_set_degrees(-180);
 	} else if (wall_front && !wall_right) {
-		//printf("\n90 %d %d", wall_front_dist, wall_right_dist);
 		global_position.x = 11;
 		global_position.y = 8;
 		gyro_set_degrees(90);
 	} else if (!wall_front && wall_right) {
-		//printf("\n-90 %d %d", wall_front_dist, wall_right_dist);
 		global_position.x = 7.5;
 		global_position.y = 8;
 		gyro_set_degrees(-90);
 	} else {
-		//printf("\n0 %d %d", wall_front_dist, wall_right_dist);
 		global_position.x = 8;
 		global_position.y = 6.5;
 		gyro_set_degrees(0);
@@ -467,6 +444,7 @@ Status attempt_orient(Node * node) {
 	return SUCCESS;
 }
 
+///////////////////////////////////////////////////////////////////////
 /*
  * Line search looks for the designated line using position estimates
  */
@@ -479,25 +457,17 @@ Status attempt_orient(Node * node) {
 	}
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
+	
+	//IF FIND LINE, RETURN SUCCESS (DO BEST GUESS CHECK)
+	uint8_t leds = get_led_readings();
 
-
-	bool left = filter_led(LEFT_LED);
-	bool middle = filter_led(MIDDLE_LED);
-	bool right = filter_led(RIGHT_LED);//IF FIND LINE, RETURN SUCCESS (DO BEST GUESS CHECK)
-
-	if (left || middle || right) {
-		//printf("\nTriggered");
+	if (leds != 0) {
 		if (get_line_position(line).x + 6.0 > global_position.x - (left_encoder_change + right_encoder_change)/2) {
 			state = FOUND;
 			soft_stop_motors(200);
 			pause(1000);
 		}
 	}
-/*
-	if ((left_encoder_change + right_encoder_change)/2 >= abs(CM_TO_TICKS(target_distance * 30.0 / 12.0))) {
-		state = END;
-		soft_stop_motors(200);
-	}*/
 }
 
 
@@ -550,87 +520,11 @@ Status line_search(Node * node) {
 	}
 }
 
-//LINE FOLLOWING
-
-uint8_t led_reading;
-
-bool filter_led(uint8_t led_port) {
-	uint8_t index;
-	switch (led_port)
-	{
-		case (RIGHT_LED):
-			index = RIGHT_LED_INDEX;
-			break;
-
-	    case (MIDDLE_LED):
-			index = MIDDLE_LED_INDEX;
-			break;
-
-	    case (LEFT_LED):
-			index = LEFT_LED_INDEX;
-			break;
-
-	    default:
-			index = MIDDLE_LED_INDEX;
-			break;
-	}
-
-	uint16_t calibration = led_filter_matrix[index];
-	uint16_t sample = analog_read(led_port);
-	return (sample > calibration); //1 if black, 0 if white
-}
-
-void line_follow_filter() {
-	bool left = filter_led(LEFT_LED);
-	bool middle = filter_led(MIDDLE_LED);
-	bool right = filter_led(RIGHT_LED);
-	led_reading = (left << 2) + (middle << 1) + (right << 0);
-}
-
-Status line_follow(Node * node) {
-	led_reading = 0;
-	while(1) {
-		//MSB->LSB, left, middle, right
-		  switch (led_reading)
-		  {
-		    case (1): //001
-		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED + LINE_OFFSET_STRONG);
-		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED - LINE_OFFSET_STRONG);
-			  printf("\nHard Right");
-		      break;
-
-		    case (2): //010
-		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED);
-		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED);
-			  printf("\nStraight");
-		      break;
-
-			case (3): //011
-		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED + LINE_OFFSET_WEAK);
-		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED - LINE_OFFSET_WEAK);
-			  printf("\nSoft Right");
-		      break;
-
-		    case (4): //100
-		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - LINE_OFFSET_STRONG);
-		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + LINE_OFFSET_STRONG);
-			  printf("\nHard Left");
-		      break;
-
-		    case (6): //110
-		      motor_set_vel(LEFT_MOTOR, FORWARD_SPEED - LINE_OFFSET_WEAK);
-		      motor_set_vel(RIGHT_MOTOR, FORWARD_SPEED + LINE_OFFSET_WEAK);
-			  printf("\nSoft Left");
-		      break;
-		  }
-
-		pause(10);
-
-		line_follow_filter();
-	}
-	return SUCCESS;
-}
-
+///////////////////////////////////////////////////////////////////
+/*
+ * Raises the flag
+ */
+ 
 Status flagbox(Node * node) {
 	turn(0);
 	motor_set_vel(FLAG_MOTOR, 192);
@@ -640,6 +534,8 @@ Status flagbox(Node * node) {
 	while(1);
 	return SUCCESS;
 }
+
+/////////////////////////////////////////////////////////////////////
 /*
  * Attempts to use sharp distance sensors to determine where
  * we are on the game board.
@@ -685,19 +581,20 @@ Status get_abs_pos(Node* node) {
         return SUCCESS;
 }
 
+////////////////////////////////////////////////////////////////////
 /*
  * Pick up a ball
  */
 
 Status acquire_ball(Node * node) {
-	servo_set_pos(JAW_SERVO, 350*1.5);//Open servo
+	servo_set_pos(JAW_SERVO, JAW_OPEN);//Open servo
 	pause(500);
 	//servo_set_pos(JAW_SERVO, 150*1.5);
-	drive_gather(12,350,150,1);//Drive a little
-	servo_set_pos(JAW_SERVO, 175*1.5);
+	drive_gather(ACQUIRE_DISTANCE,JAW_OPEN,JAW_INSIDE,ACQUIRE_MULT);//Drive a little
+	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	float heading = gyro_get_degrees();
-	float deltaX = -12.0*sin(heading/(float)RAD_TO_DEG);
-	float deltaY = 12.0*cos(heading/(float)RAD_TO_DEG);
+	float deltaX = -ACQUIRE_DISTANCE*sin(heading/(float)RAD_TO_DEG);
+	float deltaY = ACQUIRE_DISTANCE*cos(heading/(float)RAD_TO_DEG);
 	global_position.x += deltaX;
 	global_position.y += deltaY;
 	//printf("\n x = %f y = %f", global_position.x, global_position.y);
@@ -787,10 +684,19 @@ void moving_gather_filter(float start_servo, float end_servo, float scale) {
 	}
 }
 
+////////////////////////////////////////////////////////////////
 /*
  * Sharp-distance positioning when on a line
  */
+ 
+ //KEVIN: Refactor this when you get the chance.  I wasn't
+ //sure if get_abs_pos was deprecated or not
+ 
+typedef enum {NORTH, SOUTH, WEST, EAST} Orientation;
+Orientation get_orientation (int angle);
+
 Status get_pos_while_on_line(Node* node) {
+		turn(170);
 		int angle = (int)gyro_get_degrees();
 		int servo_set1 = degrees_to_servo_units(-angle);
 		int servo_set2 = degrees_to_servo_units(-angle - 90);
@@ -833,6 +739,7 @@ Status get_pos_while_on_line(Node* node) {
 		//global_position.x = 72-18;
 		//global_position.y = 18;
 		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+		go_click();
 	return SUCCESS;
 }
 
