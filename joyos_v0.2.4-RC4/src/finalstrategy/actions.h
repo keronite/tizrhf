@@ -13,5 +13,6 @@ Status line_search(Node * node);
 Status get_pos_back(Node * node);
 Status acquire_ball(Node * node);
 Status get_pos_front(Node* node);
+Status drive(float distance, float speed_scale);
 
 #endif //_ACTIONS_H_

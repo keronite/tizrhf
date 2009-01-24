@@ -13,7 +13,7 @@
 
 int count = 0;
 
-enum state_enum {PLANNING, MOVING, TURNING, STOP, FOUND, END} state;
+enum state_enum {PLANNING, MOVING, TURNING, STOP, FOUND, END, FAIL_STATE} state;
 enum planning_state_enum {INITIAL_REANGLE, FORWARD, END_REANGLE, STOP_PLANNING} planstate;
 
 void planning_state(Position *ip, Position *gp, bool do_last_turn);
@@ -40,6 +40,8 @@ float get_turn_angle(float start, float goal);
 
 Status drive(float distance, float scale);
 Status turn(float angle);
+
+uint32_t state_time;
 
 /*
  * Action travel_to, moves to the location specified in the node.
@@ -84,6 +86,9 @@ Status travel_to (Node* node) {
 
 			case (STOP):
 				break;
+				
+			case(FAIL_STATE):
+				return FAILURE;
 
 			default:
 				break;
@@ -107,7 +112,10 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 }
 
 void moving_state(float scale, float start, float end, float dist, Line line, void (*filter)(float,float,float,Line)) {
-	printf("\nMoving state");
+
+	state_time = get_time();
+	
+	//printf("\nMoving state");
 
 	int motor_multiplier = 1;
 
@@ -129,11 +137,17 @@ void moving_state(float scale, float start, float end, float dist, Line line, vo
 		pause(20);
 
 		filter(start,end,dist,line);
+		
+		if ((get_time() - state_time > 2000) && ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
+			state = FAIL_STATE;
+			soft_stop_motors(1);
+		}
 	}
 }
 
 void turning_state() {
-	printf("\nTurning state");
+	//printf("\nTurning state");
+	state_time = get_time();
 
 	while(state == TURNING) {
 
@@ -149,6 +163,10 @@ void turning_state() {
 		pause(50);
 
 		turning_filter();
+		if ((get_time() - state_time > 2000) && ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
+			state = FAIL_STATE;
+			soft_stop_motors(1);
+		}
 	}
 }
 
@@ -279,6 +297,9 @@ Status drive(float distance, float speed_scale) {
 
 			 case (STOP):
 				 break;
+				 
+			case(FAIL_STATE):
+				return FAILURE;
 
 			default:
 				break;
@@ -310,6 +331,10 @@ Status turn(float angle) {
 
 			 case (STOP):
 				 break;
+				 
+				 
+			case(FAIL_STATE):
+				return FAILURE;
 
 			default:
 				break;
@@ -405,6 +430,10 @@ Status dump_balls(Node* node) {
 
 			case (STOP):
 				break;
+				
+				
+			case(FAIL_STATE):
+				return FAILURE;
 
 			default:
 				break;
@@ -625,6 +654,10 @@ Status acquire_ball(Node * node) {
 				pause(500);
 				break;
 
+
+			case(FAIL_STATE):
+				return FAILURE;
+				
 			case (STOP):
 				break;
 
@@ -750,59 +783,63 @@ Status get_pos_front(Node* node) {
 }
 
 Status get_pos_back(Node* node) {
-	turn(135-360);
-        int angle = (((int)gyro_get_degrees())%360 + 360)%360;
-		int servo_set1 = degrees_to_servo_units2(angle%90);
-		int servo_set2 = degrees_to_servo_units2(angle%90 + 90);
-		int a1 = servo_units_to_degrees2(servo_set1);
-		int a2 = servo_units_to_degrees2(servo_set2);
-		Orientation s1 = get_orientation_back(angle - a1);
-		Orientation s2 = get_orientation_back(angle - a2);
-        //printf("\n%d  %d", angle, angle%360);
-		float x, y;
-		x = 0; y = 0;
+	if (node->use_theta) {
+		//printf("\nROFL");
+		//go_click();
+		turn(node->position.theta);
+	}
+	int angle = (((int)gyro_get_degrees())%360 + 360)%360;
+	int servo_set1 = degrees_to_servo_units2(angle%90);
+	int servo_set2 = degrees_to_servo_units2(angle%90 + 90);
+	int a1 = servo_units_to_degrees2(servo_set1);
+	int a2 = servo_units_to_degrees2(servo_set2);
+	Orientation s1 = get_orientation_back(angle - a1);
+	Orientation s2 = get_orientation_back(angle - a2);
+	//printf("\n%d  %d", angle, angle%360);
+	float x, y;
+	x = 0; y = 0;
 
-        servo_set_pos(BACK_SERVO, servo_set1);
-        pause(1000);
-		for (int i = 0; i < 30; i++) {
-			x = (x*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
-		}
+	servo_set_pos(BACK_SERVO, servo_set1);
+	pause(1000);
+	for (int i = 0; i < 30; i++) {
+		x = (x*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
+	}
 
-        servo_set_pos(BACK_SERVO, servo_set2);
-        pause(1000);
-		for (int i = 0; i < 30; i++) {
-			y = (y*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
-		}
+	servo_set_pos(BACK_SERVO, servo_set2);
+	pause(1000);
+	for (int i = 0; i < 30; i++) {
+		y = (y*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
+	}
 
-        //printf("\n 1st: %d, %s 2nd: %d, %s g: %d", x, s1, y, s2, angle%360);
+	//printf("\n 1st: %d, %s 2nd: %d, %s g: %d", x, s1, y, s2, angle%360);
 
-		if (s1 == NORTH) {
-			global_position.y = BOARD_Y - x;
-		}
-		else if (s1 == SOUTH) {
-			global_position.y = x;
-		}
-		else if (s1 == WEST) {
-			global_position.x = x;
-		}
-		else if (s1 == EAST) {
-			global_position.x = BOARD_X - x;
-		}
-		if (s2 == NORTH) {
-			global_position.y = BOARD_Y - y;
-		}
-		else if (s2 == SOUTH) {
-			global_position.y = y;
-		}
-		else if (s2 == WEST) {
-			global_position.x = y;
-		}
-		else if (s2 == EAST) {
-			global_position.x = BOARD_X - y;
-		}
-		global_position.x = global_position.x - 5.0*(sin((53.2 - angle - 180.0)/RAD_TO_DEG));
-		global_position.y = global_position.y - 5.0*(cos((53.2 - angle - 180.0)/RAD_TO_DEG));
-		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	if (s1 == NORTH) {
+		global_position.y = BOARD_Y - x;
+	}
+	else if (s1 == SOUTH) {
+		global_position.y = x;
+	}
+	else if (s1 == WEST) {
+		global_position.x = x;
+	}
+	else if (s1 == EAST) {
+		global_position.x = BOARD_X - x;
+	}
+	if (s2 == NORTH) {
+		global_position.y = BOARD_Y - y;
+	}
+	else if (s2 == SOUTH) {
+		global_position.y = y;
+	}
+	else if (s2 == WEST) {
+		global_position.x = y;
+	}
+	else if (s2 == EAST) {
+		global_position.x = BOARD_X - y;
+	}
+	global_position.x = global_position.x - 5.0*(sin((53.2 - angle - 180.0)/RAD_TO_DEG));
+	global_position.y = global_position.y - 5.0*(cos((53.2 - angle - 180.0)/RAD_TO_DEG));
+	printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
 	return SUCCESS;
 }
 

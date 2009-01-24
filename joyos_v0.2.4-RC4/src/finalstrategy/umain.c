@@ -2,6 +2,7 @@
 #include <../src/finalstrategy/globals.h>
 #include <../src/finalstrategy/node.h>
 #include <../src/finalstrategy/util.h>
+#include <../src/finalstrategy/actions.h>
 #include <happylib.h>
 
 uint8_t team_number[2] = {3,0};
@@ -48,6 +49,37 @@ int umain () {
 					//printf("\nx=%f, y=%f",global_position.x,global_position.y);
 					//go_click();
 					break;
+				} else {
+					//printf("\nFAILURE umain");
+					//go_click();
+					drive(-6,1);
+					Node * node;
+					if (global_position.x < 36) {
+						if (global_position.y < 48) {
+							node = posn_node_back(-30,true);
+						} else {
+							node = posn_node_front(70,true);
+						}
+					}
+					else {
+						if (global_position.y < 48) {
+							node = posn_node_back(70,true);
+						} else {
+							node = posn_node_front(-20,true);
+						}
+					}
+					servo_set_pos(JAW_SERVO,JAW_CLOSED);
+					servo_set_pos(LIFT_SERVO, LIFT_LOWER);
+					uint8_t bump = 0;
+					while(1) {
+						pause(5);
+						bump += digital_read(LIFT_BUMP);
+						if (bump >= 10) {
+							servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
+							break;
+						}
+					}
+					node->_attempt(node);
 				}
 			}
 			//if last number here, thrash
