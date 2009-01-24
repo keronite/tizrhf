@@ -473,7 +473,7 @@ Status attempt_orient(Node * node) {
 	}
 	uint16_t left_encoder_change = encoder_read(LEFT_ENCODER) - left_encoder_base;
 	uint16_t right_encoder_change = encoder_read(RIGHT_ENCODER) - right_encoder_base;
-	
+
 	//IF FIND LINE, RETURN SUCCESS (DO BEST GUESS CHECK)
 	uint8_t leds = get_led_readings();
 
@@ -541,7 +541,7 @@ Status line_search(Node * node) {
 /*
  * Raises the flag
  */
- 
+
 Status flagbox(Node * node) {
 	turn(0);
 	motor_set_vel(FLAG_MOTOR, 192);
@@ -552,52 +552,6 @@ Status flagbox(Node * node) {
 	return SUCCESS;
 }
 
-/////////////////////////////////////////////////////////////////////
-/*
- * Attempts to use sharp distance sensors to determine where
- * we are on the game board.
- */
-Status get_abs_pos(Node* node) {
-	while(1){
-        int angle = (int)gyro_get_degrees();
-
-        //printf("\n%d  %d", angle, angle%360);
-
-        servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle));
-        pause(1000);
-        uint8_t x = irdist_read(23)/2.54;
-
-        servo_set_pos(FRONT_SERVO, degrees_to_servo_units(-angle - 91));
-        pause(1000);
-        uint8_t y = irdist_read(23)/2.54;
-        printf("\n 1st is %d 2nd is %d gyro is %d", x, y, angle%360);
-
-        if (0 >= angle%360 && angle%360 < 90) {
-                global_position.x = y;
-                global_position.y = BOARD_Y - x;
-                //printf("\n x = %d, y = %d", (int) global_position.x, (int) global_position.y);
-        }
-        else if (90 >= angle%360 && angle%360 < 180) {
-                global_position.x = x;
-                global_position.y = y;
-                //printf("\n x = %d, y = %d", (int) global_position.x, (int) global_position.y);
-        }
-        else if (180 >= angle%360 && angle%360 < 270) {
-                global_position.x = BOARD_X - y;
-                global_position.y = x;
-                //printf("\n x = %d, y = %d", (int) global_position.x, (int) global_position.y);
-        }
-        else {
-                global_position.x = BOARD_X - y;
-                global_position.y = BOARD_Y - x;
-                //printf("\n x = %d, y = %d", (int) global_position.x, (int) global_position.y);
-        }
-        global_position.theta = angle%360;
-        //printf("\nGyro: %d", angle%360);
-	}
-        return SUCCESS;
-}
-
 ////////////////////////////////////////////////////////////////////
 /*
  * Pick up a ball
@@ -606,7 +560,7 @@ Status get_abs_pos(Node* node) {
 Status acquire_ball(Node * node) {
 	//servo_set_pos(JAW_SERVO, 150*1.5);
 	//!!!!!!!!
-	
+
 	Position p = get_ball_position(node->ball);
 	//float angle = gyro_get_degrees();
 	float goal_x = p.x;// + 2.0*sin(angle/RAD_TO_DEG);
@@ -663,10 +617,10 @@ Status acquire_ball(Node * node) {
 		 }
 	}
 	stop_state(goal);
-	
+
 	//drive_gather(ACQUIRE_DISTANCE,JAW_OPEN,JAW_INSIDE,ACQUIRE_MULT);//Drive a little
-	
-	
+
+
 	//!!!!
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	//float heading = gyro_get_degrees();
@@ -694,9 +648,9 @@ void moving_gather_filter(float start_servo, float end_servo, float dist, Line l
 	int encoder_goal = abs(CM_TO_TICKS(target_distance * 2.54));
 
 	int encoder_start = abs(CM_TO_TICKS((target_distance - dist)*2.54));
-	
+
 	float ratio = 0;
-	
+
 	if (encoder_avg > encoder_start) {
 		ratio = (float)(encoder_avg - encoder_start)/(float)(encoder_goal - encoder_start);
 
@@ -718,22 +672,23 @@ void moving_gather_filter(float start_servo, float end_servo, float dist, Line l
 /*
  * Sharp-distance positioning when on a line
  */
- 
+
  //KEVIN: Refactor this when you get the chance.  I wasn't
  //sure if get_abs_pos was deprecated or not
- 
-typedef enum {NORTH, SOUTH, WEST, EAST} Orientation;
-Orientation get_orientation (int angle);
 
-Status get_pos_while_on_line(Node* node) {
+typedef enum {NORTH, SOUTH, WEST, EAST} Orientation;
+Orientation get_orientation_front (int angle);
+Orientation get_orientation_back (int angle);
+
+Status get_pos_front(Node* node) {
 		turn(-110);
 		int angle = (int)gyro_get_degrees();
 		int servo_set1 = degrees_to_servo_units(-angle);
 		int servo_set2 = degrees_to_servo_units(-angle - 90);
 		int a1 = servo_units_to_degrees(servo_set1);
 		int a2 = servo_units_to_degrees(servo_set2);
-		Orientation s1 = get_orientation(angle - a1);
-		Orientation s2 = get_orientation(angle - a2);
+		Orientation s1 = get_orientation_front(angle - a1);
+		Orientation s2 = get_orientation_front(angle - a2);
 		//printf("\n%d  %d", angle, angle%360);
 		float x, y;
 		x = 0; y = 0;
@@ -741,13 +696,13 @@ Status get_pos_while_on_line(Node* node) {
 		servo_set_pos(FRONT_SERVO, servo_set1);
 		pause(1000);
 		for (int i = 0; i < 10; i++) {
-			x = (x*i + irdist_read(23)/2.54)/(i+1);
+			x = (x*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 		}
 
 		servo_set_pos(FRONT_SERVO, servo_set2);
 		pause(1000);
 		for (int i = 0; i < 10; i++) {
-			y = (y*i + irdist_read(23)/2.54)/(i+1);
+			y = (y*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 		}
 		//printf("\n1st: %d, %s, 2nd: %d, %s", x, s1, y, s2);
 
@@ -773,7 +728,65 @@ Status get_pos_while_on_line(Node* node) {
 	return SUCCESS;
 }
 
-Orientation get_orientation (int angle) {
+Status get_pos_back(Node* node) {
+	while(1) {
+        int angle = (((int)gyro_get_degrees())%360 + 360)%360;
+		int servo_set1 = degrees_to_servo_units2(angle%90);
+		int servo_set2 = degrees_to_servo_units2(angle%90 + 90);
+		int a1 = servo_units_to_degrees2(servo_set1);
+		int a2 = servo_units_to_degrees2(servo_set2);
+		Orientation s1 = get_orientation_back(angle - a1);
+		Orientation s2 = get_orientation_back(angle - a2);
+        //printf("\n%d  %d", angle, angle%360);
+		float x, y;
+		x = 0; y = 0;
+
+        servo_set_pos(BACK_SERVO, servo_set1);
+        pause(1000);
+		for (int i = 0; i < 10; i++) {
+			x = (x*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
+		}
+
+        servo_set_pos(BACK_SERVO, servo_set2);
+        pause(1000);
+		for (int i = 0; i < 10; i++) {
+			y = (y*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
+		}
+
+        //printf("\n 1st: %d, %s 2nd: %d, %s g: %d", x, s1, y, s2, angle%360);
+
+		if (s1 == NORTH) {
+			global_position.y = BOARD_Y - x;
+		}
+		else if (s1 == SOUTH) {
+			global_position.y = x;
+		}
+		else if (s1 == WEST) {
+			global_position.x = x;
+		}
+		else if (s1 == EAST) {
+			global_position.x = BOARD_X - x;
+		}
+		if (s2 == NORTH) {
+			global_position.y = BOARD_Y - y;
+		}
+		else if (s2 == SOUTH) {
+			global_position.y = y;
+		}
+		else if (s2 == WEST) {
+			global_position.x = y;
+		}
+		else if (s2 == EAST) {
+			global_position.x = BOARD_X - y;
+		}
+		global_position.x = global_position.x - 5.0*(sin((53.2 - angle - 180.0)/RAD_TO_DEG));
+		global_position.y = global_position.y - 5.0*(cos((53.2 - angle - 180.0)/RAD_TO_DEG));
+		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	}
+	return SUCCESS;
+}
+
+Orientation get_orientation_front (int angle) {
 	int anglepos;
 	if (angle%360 < 0){
 		anglepos = angle%360 + 360;
@@ -803,6 +816,40 @@ Orientation get_orientation (int angle) {
 		min_angle_dif = abs(anglepos - 180);
 		o = SOUTH;
 		os = "S";
+	}
+	return o;
+}
+
+Orientation get_orientation_back (int angle) {
+	int anglepos;
+	if (angle%360 < 0){
+		anglepos = angle%360 + 360;
+	}
+	else {
+		anglepos = angle%360;
+	}
+	Orientation o = NORTH;
+	char* os = "U";
+	int min_angle_dif = 45;
+	if (abs(anglepos) < min_angle_dif) {
+		min_angle_dif = abs(anglepos - 0);
+		o = EAST;
+		os = "E";
+	}
+	if (abs(anglepos - 90) < min_angle_dif) {
+		min_angle_dif = abs(anglepos - 90);
+		o = NORTH;
+		os = "N";
+	}
+	if (abs(anglepos - 270) < min_angle_dif) {
+		min_angle_dif = abs(anglepos - 270);
+		o = SOUTH;
+		os = "S";
+	}
+	if (abs(anglepos - 180) < min_angle_dif) {
+		min_angle_dif = abs(anglepos - 180);
+		o = WEST;
+		os = "W";
 	}
 	return o;
 }

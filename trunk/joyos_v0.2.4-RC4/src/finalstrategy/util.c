@@ -134,8 +134,21 @@ int degrees_to_servo_units(int degrees) {
 	return servo_angle;
 }
 
+int degrees_to_servo_units2(int degrees) {
+	int servo_angle = 511 - (int)(degrees*213.0/90.0)%427;
+	if (servo_angle < 0) {
+		servo_angle += 512;
+	}
+	return servo_angle;
+}
+
 int servo_units_to_degrees(int servo_angle) {
 	int degrees = (int) -(servo_angle*180.0/511.0) + 90;
+	return degrees;
+}
+
+int servo_units_to_degrees2(int servo_angle) {
+	int degrees = (int) (180 - ((servo_angle - 85.0)*180.0/426.0));
 	return degrees;
 }
 
@@ -398,15 +411,15 @@ uint8_t get_led_readings() {
 
 	uint16_t calibration_r = led_filter_matrix[RIGHT_LED_INDEX];
 	uint16_t sample_r = analog_read(RIGHT_LED);
-	
+
 	uint16_t calibration_m = led_filter_matrix[MIDDLE_LED_INDEX];
 	uint16_t sample_m = analog_read(MIDDLE_LED);
-	
+
 	uint16_t calibration_l = led_filter_matrix[LEFT_LED_INDEX];
 	uint16_t sample_l = analog_read(LEFT_LED);
-	
+
 	uint8_t reading = 0;
-	
+
 	if (sample_r > calibration_r) {
 		reading += 1;
 	}
@@ -416,6 +429,6 @@ uint8_t get_led_readings() {
 	if (sample_l > calibration_l) {
 		reading += 4;
 	}
-	
+
 	return reading; //00000LMR, 1 if black, 0 if white
 }

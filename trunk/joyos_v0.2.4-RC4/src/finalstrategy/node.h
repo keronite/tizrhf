@@ -27,6 +27,7 @@ Node * test_node(uint8_t id);
 Node * find_line_node(Line line);
 Node * corner_orient_node();
 Node * posn_node();
+Node * posn_node_back();
 Node * flag_node();
 void add_child(Node* parent, Node* child);
 
