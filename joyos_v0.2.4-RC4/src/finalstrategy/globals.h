@@ -17,7 +17,6 @@
 
 //Digital bump sensor readings
 #define LIFT_BUMP 0
-#define JAW_BUMP 1
 
 //PID control constants.
 #define KP 1.75
@@ -25,7 +24,7 @@
 #define KI .4
 
 //Motor speeds
-#define FORWARD_SPEED 164
+#define FORWARD_SPEED 174
 #define BACKWARD_SPEED 64
 #define TURNING_SPEED 164
 
@@ -43,10 +42,9 @@
 
 //Dumping mechanism constants
 #define DUMP_FORWARD_DIST 7.0
-#define DUMP_REVERSE_DIST -15.0
-#define DUMPING_SPEED_MULT 1.1
+#define DUMP_REVERSE_DIST -14.0
+#define DUMPING_SPEED_MULT 2.5
 #define DUMPING_REV_SPEED_MULT 1
-#define DUMP_ATTEMPTS 3
 
 //Numeric constants
 #define RAD_TO_DEG 57.2957795
@@ -71,7 +69,7 @@
 //Jaw Servo
 #define JAW_OPEN 525
 #define JAW_CLOSED 262
-#define JAW_INSIDE 215
+#define JAW_INSIDE 225
 
 //Lift servo
 #define LIFT_RAISE 600
@@ -83,15 +81,6 @@
 //Ball acquire
 #define ACQUIRE_DISTANCE 12.0
 #define ACQUIRE_MULT 1
-
-//Flag constants
-#define FLAG_SPEED 224
-#define FLAG_BACKUP -16
-
-//Motor stalls
-#define DRIVE_STALL_THRESH 0
-#define FLAG_STALL_USE_THRESH 0
-#define FLAG_USE_IDLE_THRESH 0
 
 
 #define BEAT 100

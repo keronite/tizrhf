@@ -11,6 +11,8 @@
 
 #include <lib/pid.h>
 
+int count = 0;
+
 enum state_enum {PLANNING, MOVING, TURNING, STOP, FOUND, END} state;
 enum planning_state_enum {INITIAL_REANGLE, FORWARD, END_REANGLE, STOP_PLANNING} planstate;
 
@@ -105,7 +107,7 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 }
 
 void moving_state(float scale, float start, float end, float dist, Line line, void (*filter)(float,float,float,Line)) {
-	//printf("\nMoving state");
+	printf("\nMoving state");
 
 	int motor_multiplier = 1;
 
@@ -121,8 +123,8 @@ void moving_state(float scale, float start, float end, float dist, Line line, vo
 
 		float output = update_pid_input(&controller, input);
 
-		motor_set_vel(RIGHT_MOTOR, clamp((float)motor_multiplier * scale * (float)(FORWARD_SPEED + (int)output + OFFSET_ESTIMATE),-255,255));
-		motor_set_vel(LEFT_MOTOR, clamp((float)motor_multiplier * scale * (float)(FORWARD_SPEED - (int)output - OFFSET_ESTIMATE),-255,255));
+		motor_set_vel(RIGHT_MOTOR, (float)motor_multiplier * scale * (float)(FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
+		motor_set_vel(LEFT_MOTOR, (float)motor_multiplier * scale * (float)(FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
 
 		pause(20);
 
@@ -131,7 +133,7 @@ void moving_state(float scale, float start, float end, float dist, Line line, vo
 }
 
 void turning_state() {
-	//printf("\nTurning state");
+	printf("\nTurning state");
 
 	while(state == TURNING) {
 
@@ -208,7 +210,7 @@ void moving_filter(float start, float end, float dist, Line line) {
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
-			soft_stop_motors(100);
+			soft_stop_motors(200);
 			return;
 		}
 		hard_brake();
@@ -229,10 +231,10 @@ void turning_filter() {
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
-			soft_stop_motors(100);
+			soft_stop_motors(500);
 			return;
 		}
-		soft_stop_motors(100);
+		soft_stop_motors(500);
 	}
 }
 
@@ -258,7 +260,7 @@ float get_turn_angle(float start, float goal) {
  * Action drive(distance), moves forward a certain distance.
  */
 Status drive(float distance, float speed_scale) {
-	//printf("\nIn function drive()");
+	printf("\nIn function drive()");
 	state = MOVING;
 	planstate = STOP_PLANNING;
 	target_distance = distance;
@@ -353,9 +355,21 @@ Status dump_balls(Node* node) {
 
 ///////
 
-	float goal_x = 56.5;
-	float goal_y = 16.5;
-	float goal_theta = 0;
+	float goal_x;
+	float goal_y;
+	float goal_theta;
+	
+	if (count == 0) {
+		goal_x = 59.5;
+		goal_y = 16;
+		goal_theta = 0;
+	} else {
+		goal_x = 61.5;
+		goal_y = 14;
+		goal_theta = 0;
+	}
+	
+	count++;
 
 	uint8_t use_theta = false;
 
@@ -398,15 +412,6 @@ Status dump_balls(Node* node) {
 	}
 	stop_state(goal);
 
-	for (uint8_t i = 0; i < DUMP_ATTEMPTS; i++) {
-		servo_set_pos(JAW_SERVO, JAW_INSIDE);
-		pause(1000);
-		servo_set_pos(JAW_SERVO, JAW_CLOSED);
-		if (!digital_read(JAW_BUMP)) {break;}
-		drive(-3,1);
-		servo_set_pos(JAW_SERVO, JAW_OPEN);
-		drive(3,2);
-	}
 //////
 	//drive_gather(DUMP_FORWARD_DIST,JAW_CLOSED,JAW_OPEN,DUMPING_SPEED_MULT);
 
@@ -553,10 +558,12 @@ Status line_search(Node * node) {
 
 Status flagbox(Node * node) {
 	turn(0);
-	motor_set_vel(FLAG_MOTOR, FLAG_SPEED);
-	drive(-12, .5);
-	motor_set_vel(RIGHT_MOTOR, FLAG_BACKUP);
-	motor_set_vel(LEFT_MOTOR, FLAG_BACKUP);
+	motor_set_vel(FLAG_MOTOR, 225);
+	motor_set_vel(RIGHT_MOTOR, -75);
+	motor_set_vel(LEFT_MOTOR, -75);
+	pause(3000);
+	motor_set_vel(RIGHT_MOTOR, -15);
+	motor_set_vel(LEFT_MOTOR, -15);
 	while(1);
 	return SUCCESS;
 }
@@ -670,11 +677,7 @@ void moving_gather_filter(float start_servo, float end_servo, float dist, Line l
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
-			if (end_servo <= JAW_CLOSED) {
-				hard_brake();
-			} else {
-				soft_stop_motors(10);
-			}
+			soft_stop_motors(200);
 			return;
 		}
 		hard_brake();
@@ -713,13 +716,13 @@ Status get_pos_front(Node* node) {
 
 	servo_set_pos(FRONT_SERVO, servo_set1);
 	pause(1000);
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 30; i++) {
 		x = (x*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 	}
 
 	servo_set_pos(FRONT_SERVO, servo_set2);
 	pause(1000);
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 30; i++) {
 		y = (y*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 	}
 	//printf("\n1st: %d, %s, 2nd: %d, %s", x, s1, y, s2);
@@ -747,7 +750,7 @@ Status get_pos_front(Node* node) {
 }
 
 Status get_pos_back(Node* node) {
-	turn(135);
+	turn(135-360);
         int angle = (((int)gyro_get_degrees())%360 + 360)%360;
 		int servo_set1 = degrees_to_servo_units2(angle%90);
 		int servo_set2 = degrees_to_servo_units2(angle%90 + 90);
@@ -761,13 +764,13 @@ Status get_pos_back(Node* node) {
 
         servo_set_pos(BACK_SERVO, servo_set1);
         pause(1000);
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 30; i++) {
 			x = (x*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
 		}
 
         servo_set_pos(BACK_SERVO, servo_set2);
         pause(1000);
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 30; i++) {
 			y = (y*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
 		}
 
