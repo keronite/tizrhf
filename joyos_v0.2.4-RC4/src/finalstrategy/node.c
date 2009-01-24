@@ -53,8 +53,12 @@ Node * goal_node() {
 	return node;
 }
 
-Node * posn_node_front() {
+Node * posn_node_front(float angle, uint8_t use_theta) {
 	Node * node = (Node*)malloc(sizeof(Node));
+	Position p;
+	p.theta = angle;
+	node->use_theta = use_theta;
+	node->position = p;
 	node->_attempt = get_pos_front;
 	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
 		node->children[i] = NULL;

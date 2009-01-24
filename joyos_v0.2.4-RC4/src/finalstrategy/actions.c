@@ -546,8 +546,8 @@ Status flagbox(Node * node) {
 	turn(0);
 	motor_set_vel(FLAG_MOTOR, 192);
 	drive(-12, .5);
-	motor_set_vel(RIGHT_MOTOR, -32);
-	motor_set_vel(LEFT_MOTOR, -32);
+	motor_set_vel(RIGHT_MOTOR, -25);
+	motor_set_vel(LEFT_MOTOR, -25);
 	while(1);
 	return SUCCESS;
 }
@@ -681,55 +681,60 @@ Orientation get_orientation_front (int angle);
 Orientation get_orientation_back (int angle);
 
 Status get_pos_front(Node* node) {
-		turn(-110);
-		int angle = (int)gyro_get_degrees();
-		int servo_set1 = degrees_to_servo_units(-angle);
-		int servo_set2 = degrees_to_servo_units(-angle - 90);
-		int a1 = servo_units_to_degrees(servo_set1);
-		int a2 = servo_units_to_degrees(servo_set2);
-		Orientation s1 = get_orientation_front(angle - a1);
-		Orientation s2 = get_orientation_front(angle - a2);
-		//printf("\n%d  %d", angle, angle%360);
-		float x, y;
-		x = 0; y = 0;
-
-		servo_set_pos(FRONT_SERVO, servo_set1);
-		pause(1000);
-		for (int i = 0; i < 10; i++) {
-			x = (x*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
-		}
-
-		servo_set_pos(FRONT_SERVO, servo_set2);
-		pause(1000);
-		for (int i = 0; i < 10; i++) {
-			y = (y*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
-		}
-		//printf("\n1st: %d, %s, 2nd: %d, %s", x, s1, y, s2);
-
-
-		if (s1 == NORTH) {
-			global_position.y = BOARD_Y - x;
-		}
-		else if (s1 == SOUTH) {
-			global_position.y = x;
-		}
-		if (s2 == EAST) {
-			global_position.x = BOARD_X - y;
-		}
-		else if (s1 == WEST) {
-			global_position.x = y;
-		}
-		global_position.x = global_position.x - 7.8*(sin((50.2 - angle)/RAD_TO_DEG));
-		global_position.y = global_position.y - 7.8*(cos((50.2 - angle)/RAD_TO_DEG));
-		//global_position.x = 72-18;
-		//global_position.y = 18;
-		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	if (node->use_theta) {
+		//printf("\nROFL");
 		//go_click();
+		turn(node->position.theta);
+	}
+	
+	int angle = (int)gyro_get_degrees();
+	int servo_set1 = degrees_to_servo_units(-angle);
+	int servo_set2 = degrees_to_servo_units(-angle - 90);
+	int a1 = servo_units_to_degrees(servo_set1);
+	int a2 = servo_units_to_degrees(servo_set2);
+	Orientation s1 = get_orientation_front(angle - a1);
+	Orientation s2 = get_orientation_front(angle - a2);
+	//printf("\n%d  %d", angle, angle%360);
+	float x, y;
+	x = 0; y = 0;
+
+	servo_set_pos(FRONT_SERVO, servo_set1);
+	pause(1000);
+	for (int i = 0; i < 10; i++) {
+		x = (x*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
+	}
+
+	servo_set_pos(FRONT_SERVO, servo_set2);
+	pause(1000);
+	for (int i = 0; i < 10; i++) {
+		y = (y*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
+	}
+	//printf("\n1st: %d, %s, 2nd: %d, %s", x, s1, y, s2);
+
+
+	if (s1 == NORTH) {
+		global_position.y = BOARD_Y - x;
+	}
+	else if (s1 == SOUTH) {
+		global_position.y = x;
+	}
+	if (s2 == EAST) {
+		global_position.x = BOARD_X - y;
+	}
+	else if (s1 == WEST) {
+		global_position.x = y;
+	}
+	global_position.x = global_position.x - 7.8*(sin((50.2 - angle)/RAD_TO_DEG));
+	global_position.y = global_position.y - 7.8*(cos((50.2 - angle)/RAD_TO_DEG));
+	//global_position.x = 72-18;
+	//global_position.y = 18;
+	printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	//go_click();
 	return SUCCESS;
 }
 
 Status get_pos_back(Node* node) {
-	while(1) {
+	turn(135);
         int angle = (((int)gyro_get_degrees())%360 + 360)%360;
 		int servo_set1 = degrees_to_servo_units2(angle%90);
 		int servo_set2 = degrees_to_servo_units2(angle%90 + 90);
@@ -782,7 +787,6 @@ Status get_pos_back(Node* node) {
 		global_position.x = global_position.x - 5.0*(sin((53.2 - angle - 180.0)/RAD_TO_DEG));
 		global_position.y = global_position.y - 5.0*(cos((53.2 - angle - 180.0)/RAD_TO_DEG));
 		printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
-	}
 	return SUCCESS;
 }
 
