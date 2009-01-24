@@ -44,7 +44,7 @@
 //Dumping mechanism constants
 #define DUMP_FORWARD_DIST 7.0
 #define DUMP_REVERSE_DIST -15.0
-#define DUMPING_SPEED_MULT 2.5
+#define DUMPING_SPEED_MULT 1.1
 #define DUMPING_REV_SPEED_MULT 1
 #define DUMP_ATTEMPTS 3
 
@@ -71,7 +71,7 @@
 //Jaw Servo
 #define JAW_OPEN 525
 #define JAW_CLOSED 262
-#define JAW_INSIDE 225
+#define JAW_INSIDE 215
 
 //Lift servo
 #define LIFT_RAISE 600
@@ -87,6 +87,11 @@
 //Flag constants
 #define FLAG_SPEED 224
 #define FLAG_BACKUP -16
+
+//Motor stalls
+#define DRIVE_STALL_THRESH 0
+#define FLAG_STALL_USE_THRESH 0
+#define FLAG_USE_IDLE_THRESH 0
 
 
 #define BEAT 100
