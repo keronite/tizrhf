@@ -101,8 +101,8 @@ Position get_ball_position(Ball ball) {
 			p.y = 60;
 			break;
 		case (LARGE_BALL1):
-			p.x = 48;
-			p.y = 60;
+			p.x = 49;
+			p.y = 61;
 			break;
 		case (LARGE_BALL2):
 			p.x = 21;
@@ -243,7 +243,7 @@ void calibrate_leds() {
 }
 
 void hard_brake() {
-	printf("\nHard brake");
+	//printf("\nHard brake");
 	motor_brake(RIGHT_MOTOR);
 	motor_brake(LEFT_MOTOR);
 }
