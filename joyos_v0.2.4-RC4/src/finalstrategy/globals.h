@@ -32,6 +32,7 @@
 #define SHARP_M 13569
 #define SHARP_C 4
 #define FRONT_SHARP 23
+#define BACK_SHARP 19
 
 //Servo ports
 #define LIFT_SERVO 0

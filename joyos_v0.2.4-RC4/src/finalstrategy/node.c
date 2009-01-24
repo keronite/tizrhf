@@ -53,9 +53,18 @@ Node * goal_node() {
 	return node;
 }
 
-Node * posn_node() {
+Node * posn_node_front() {
 	Node * node = (Node*)malloc(sizeof(Node));
-	node->_attempt = get_pos_while_on_line;
+	node->_attempt = get_pos_front;
+	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
+		node->children[i] = NULL;
+	}
+	return node;
+}
+
+Node * posn_node_back() {
+	Node * node = (Node*)malloc(sizeof(Node));
+	node->_attempt = get_pos_back;
 	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
 		node->children[i] = NULL;
 	}
