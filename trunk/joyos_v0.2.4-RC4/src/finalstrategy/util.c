@@ -93,7 +93,7 @@ Position get_ball_position(Ball ball) {
 			p.y = 18;
 			break;
 		case (SMALL_BALL13):
-			p.x = 48;
+			p.x = 49;
 			p.y = 18;
 			break;
 		case (LARGE_BALL0):
@@ -101,16 +101,16 @@ Position get_ball_position(Ball ball) {
 			p.y = 60;
 			break;
 		case (LARGE_BALL1):
-			p.x = 49;
-			p.y = 61;
+			p.x = 48.5;
+			p.y = 60;
 			break;
 		case (LARGE_BALL2):
-			p.x = 21;
-			p.y = 36;
+			p.x = 20.5;
+			p.y = 35.5;
 			break;
 		case (LARGE_BALL3):
 			p.x = 48;
-			p.y = 36;
+			p.y = 37.5;
 			break;
 	}
 
@@ -243,7 +243,7 @@ void calibrate_leds() {
 }
 
 void hard_brake() {
-	//printf("\nHard brake");
+	printf("\nHard brake");
 	motor_brake(RIGHT_MOTOR);
 	motor_brake(LEFT_MOTOR);
 }
