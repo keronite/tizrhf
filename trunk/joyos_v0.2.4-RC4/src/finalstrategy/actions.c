@@ -105,7 +105,7 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 }
 
 void moving_state(float scale, float start, float end, float dist, Line line, void (*filter)(float,float,float,Line)) {
-	printf("\nMoving state");
+	//printf("\nMoving state");
 
 	int motor_multiplier = 1;
 
@@ -121,8 +121,8 @@ void moving_state(float scale, float start, float end, float dist, Line line, vo
 
 		float output = update_pid_input(&controller, input);
 
-		motor_set_vel(RIGHT_MOTOR, (float)motor_multiplier * scale * (float)(FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
-		motor_set_vel(LEFT_MOTOR, (float)motor_multiplier * scale * (float)(FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
+		motor_set_vel(RIGHT_MOTOR, clamp((float)motor_multiplier * scale * (float)(FORWARD_SPEED + (int)output + OFFSET_ESTIMATE),-255,255));
+		motor_set_vel(LEFT_MOTOR, clamp((float)motor_multiplier * scale * (float)(FORWARD_SPEED - (int)output - OFFSET_ESTIMATE),-255,255));
 
 		pause(20);
 
@@ -131,7 +131,7 @@ void moving_state(float scale, float start, float end, float dist, Line line, vo
 }
 
 void turning_state() {
-	printf("\nTurning state");
+	//printf("\nTurning state");
 
 	while(state == TURNING) {
 
@@ -208,7 +208,7 @@ void moving_filter(float start, float end, float dist, Line line) {
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
-			soft_stop_motors(200);
+			soft_stop_motors(100);
 			return;
 		}
 		hard_brake();
@@ -229,10 +229,10 @@ void turning_filter() {
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
-			soft_stop_motors(500);
+			soft_stop_motors(100);
 			return;
 		}
-		soft_stop_motors(500);
+		soft_stop_motors(100);
 	}
 }
 
@@ -258,7 +258,7 @@ float get_turn_angle(float start, float goal) {
  * Action drive(distance), moves forward a certain distance.
  */
 Status drive(float distance, float speed_scale) {
-	printf("\nIn function drive()");
+	//printf("\nIn function drive()");
 	state = MOVING;
 	planstate = STOP_PLANNING;
 	target_distance = distance;
@@ -398,6 +398,15 @@ Status dump_balls(Node* node) {
 	}
 	stop_state(goal);
 
+	for (uint8_t i = 0; i < DUMP_ATTEMPTS; i++) {
+		servo_set_pos(JAW_SERVO, JAW_INSIDE);
+		pause(1000);
+		servo_set_pos(JAW_SERVO, JAW_CLOSED);
+		if (!digital_read(JAW_BUMP)) {break;}
+		drive(-3,1);
+		servo_set_pos(JAW_SERVO, JAW_OPEN);
+		drive(3,2);
+	}
 //////
 	//drive_gather(DUMP_FORWARD_DIST,JAW_CLOSED,JAW_OPEN,DUMPING_SPEED_MULT);
 
@@ -544,10 +553,10 @@ Status line_search(Node * node) {
 
 Status flagbox(Node * node) {
 	turn(0);
-	motor_set_vel(FLAG_MOTOR, 192);
+	motor_set_vel(FLAG_MOTOR, FLAG_SPEED);
 	drive(-12, .5);
-	motor_set_vel(RIGHT_MOTOR, -25);
-	motor_set_vel(LEFT_MOTOR, -25);
+	motor_set_vel(RIGHT_MOTOR, FLAG_BACKUP);
+	motor_set_vel(LEFT_MOTOR, FLAG_BACKUP);
 	while(1);
 	return SUCCESS;
 }
@@ -661,7 +670,11 @@ void moving_gather_filter(float start_servo, float end_servo, float dist, Line l
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
-			soft_stop_motors(200);
+			if (end_servo <= JAW_CLOSED) {
+				hard_brake();
+			} else {
+				soft_stop_motors(10);
+			}
 			return;
 		}
 		hard_brake();

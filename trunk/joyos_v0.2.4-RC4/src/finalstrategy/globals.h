@@ -17,6 +17,7 @@
 
 //Digital bump sensor readings
 #define LIFT_BUMP 0
+#define JAW_BUMP 1
 
 //PID control constants.
 #define KP 1.75
@@ -45,6 +46,7 @@
 #define DUMP_REVERSE_DIST -15.0
 #define DUMPING_SPEED_MULT 2.5
 #define DUMPING_REV_SPEED_MULT 1
+#define DUMP_ATTEMPTS 3
 
 //Numeric constants
 #define RAD_TO_DEG 57.2957795
@@ -81,6 +83,10 @@
 //Ball acquire
 #define ACQUIRE_DISTANCE 12.0
 #define ACQUIRE_MULT 1
+
+//Flag constants
+#define FLAG_SPEED 224
+#define FLAG_BACKUP -16
 
 
 #define BEAT 100
