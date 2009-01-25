@@ -243,7 +243,7 @@ void calibrate_leds() {
 }
 
 void hard_brake() {
-	printf("\nHard brake");
+	//printf("\nHard brake");
 	motor_brake(RIGHT_MOTOR);
 	motor_brake(LEFT_MOTOR);
 }

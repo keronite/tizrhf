@@ -249,10 +249,10 @@ void turning_filter() {
 		state = PLANNING;
 		if (planstate == STOP_PLANNING) {
 			state = STOP;
-			soft_stop_motors(500);
+			soft_stop_motors(200);
 			return;
 		}
-		soft_stop_motors(500);
+		soft_stop_motors(200);
 	}
 }
 
@@ -278,7 +278,7 @@ float get_turn_angle(float start, float goal) {
  * Action drive(distance), moves forward a certain distance.
  */
 Status drive(float distance, float speed_scale) {
-	printf("\nIn function drive()");
+	//printf("\nIn function drive()");
 	state = MOVING;
 	planstate = STOP_PLANNING;
 	target_distance = distance;
@@ -467,7 +467,7 @@ Status dump_balls(Node* node) {
 Status attempt_orient(Node * node) {
 
 	servo_set_pos(FRONT_SERVO, 255);
-	pause(1000);
+	pause(500);
 	uint16_t wall_front_dist = irdist_read(FRONT_SHARP);
 	bool wall_front = false;
 	if (wall_front_dist < 50) {
@@ -475,7 +475,7 @@ Status attempt_orient(Node * node) {
 	}
 
 	servo_set_pos(FRONT_SERVO, 0);
-	pause(1000);
+	pause(500);
 	uint16_t wall_right_dist = irdist_read(FRONT_SHARP);
 	bool wall_right = false;
 	if (wall_right_dist < 50) {
@@ -532,7 +532,7 @@ Status attempt_orient(Node * node) {
 
 
 void moving_line_state(Line line) {
-	printf("\nMoving line state");
+	//printf("\nMoving line state");
 
 	int motor_multiplier = 1;
 
@@ -558,7 +558,7 @@ void moving_line_state(Line line) {
 }
 
 Status line_search(Node * node) {
-	printf("\nLine search");
+	//printf("\nLine search");
 	state = MOVING;
 	target_distance = 100;
 	reset_pid_controller(gyro_get_degrees());
@@ -588,8 +588,8 @@ Status line_search(Node * node) {
 Status flagbox(Node * node) {
 	turn(0);
 	motor_set_vel(FLAG_MOTOR, 225);
-	motor_set_vel(RIGHT_MOTOR, -75);
-	motor_set_vel(LEFT_MOTOR, -75);
+	motor_set_vel(RIGHT_MOTOR, -65);
+	motor_set_vel(LEFT_MOTOR, -65);
 	pause(3000);
 	motor_set_vel(RIGHT_MOTOR, -15);
 	motor_set_vel(LEFT_MOTOR, -15);
@@ -639,12 +639,12 @@ Status acquire_ball(Node * node) {
 			case (MOVING):
 				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
 				//go_click();
-				target_distance -= 2.0;
-				goal.x += 2.0*sin(target_angle/RAD_TO_DEG);
-				goal.y -= 2.0*cos(target_angle/RAD_TO_DEG);
+				target_distance -= 2.5;
+				goal.x += 2.5*sin(target_angle/RAD_TO_DEG);
+				goal.y -= 2.5*cos(target_angle/RAD_TO_DEG);
 				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
 				//go_click();
-				moving_state(.5,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
+				moving_state(.75,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
 				break;
 
 			case (TURNING):
@@ -748,13 +748,13 @@ Status get_pos_front(Node* node) {
 	x = 0; y = 0;
 
 	servo_set_pos(FRONT_SERVO, servo_set1);
-	pause(1000);
+	pause(500);
 	for (int i = 0; i < 30; i++) {
 		x = (x*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 	}
 
 	servo_set_pos(FRONT_SERVO, servo_set2);
-	pause(1000);
+	pause(500);
 	for (int i = 0; i < 30; i++) {
 		y = (y*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 	}
@@ -777,7 +777,7 @@ Status get_pos_front(Node* node) {
 	global_position.y = global_position.y - 7.8*(cos((50.2 - angle)/RAD_TO_DEG));
 	//global_position.x = 72-18;
 	//global_position.y = 18;
-	printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	//printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
 	//go_click();
 	return SUCCESS;
 }
@@ -800,13 +800,13 @@ Status get_pos_back(Node* node) {
 	x = 0; y = 0;
 
 	servo_set_pos(BACK_SERVO, servo_set1);
-	pause(1000);
+	pause(500);
 	for (int i = 0; i < 30; i++) {
 		x = (x*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
 	}
 
 	servo_set_pos(BACK_SERVO, servo_set2);
-	pause(1000);
+	pause(500);
 	for (int i = 0; i < 30; i++) {
 		y = (y*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
 	}
@@ -839,7 +839,7 @@ Status get_pos_back(Node* node) {
 	}
 	global_position.x = global_position.x - 5.0*(sin((53.2 - angle - 180.0)/RAD_TO_DEG));
 	global_position.y = global_position.y - 5.0*(cos((53.2 - angle - 180.0)/RAD_TO_DEG));
-	printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	//printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
 	return SUCCESS;
 }
 
