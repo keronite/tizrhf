@@ -692,6 +692,8 @@ Status attempt_orient(Node * node) {
  */
 
  void moving_line_filter(Line line) {
+ 
+	turn(-90);
 
 	if (stop_press()) {
 		state = STOP;
@@ -706,7 +708,7 @@ Status attempt_orient(Node * node) {
 	if (leds != 0) {
 	//if (maximum x for line) > (our position)
 	//60 > our position
-		if (CM_TO_TICKS((get_line_position(line).x + 6.0)*2.54) > CM_TO_TICKS(global_position.x*2.54) - (left_encoder_change + right_encoder_change)/2) {
+		if (CM_TO_TICKS((get_line_position(line).x - 6.0)*2.54) < CM_TO_TICKS(global_position.x*2.54) + (left_encoder_change + right_encoder_change)/2) {
 			state = FOUND;
 			soft_stop_motors(200);
 		}
@@ -806,6 +808,12 @@ Status flagbox(Node * node) {
 			count = 0;
 		}
 	}
+	
+	drive(-3,1.0);
+	
+	global_position.x = 36;
+	global_position.y = 60;
+	
 	return SUCCESS;
 }
 
@@ -856,7 +864,7 @@ Status acquire_ball(Node * node) {
 				goal.y -= 2.5*cos(target_angle/RAD_TO_DEG);
 				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
 				//go_click();
-				moving_state(1.1,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
+				moving_state(1,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
 				break;
 
 			case (TURNING):
