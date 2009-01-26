@@ -149,6 +149,20 @@ void turning_state() {
 	//printf("\nTurning state");
 	state_time = get_time();
 
+	float angle = gyro_get_degrees();
+	
+	int angle_diff = (int)(target_angle - angle);
+	
+	angle_diff %= 360;
+	if (angle_diff < 0) {
+		angle_diff += 360;
+	}
+	if (angle_diff > 180) {
+		angle_diff -= 360;
+	}
+	
+	target_angle = (int)angle + angle_diff;
+
 	while(state == TURNING) {
 
 		float angle = gyro_get_degrees();
@@ -577,6 +591,8 @@ void moving_line_state(Line line) {
 	if (target_distance < 0){
 		motor_multiplier = -1;
 	}
+	
+	state_time = get_time();
 	while(state == MOVING)
 	{
 		float input = gyro_get_degrees();
@@ -589,6 +605,10 @@ void moving_line_state(Line line) {
 		pause(50);
 
 		moving_line_filter(line);
+		if ((get_time() - state_time > 2000) && ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
+			state = FAIL_STATE;
+			soft_stop_motors(1);
+		}
 	}
 }
 
@@ -629,10 +649,17 @@ Status flagbox(Node * node) {
 	pause(1500);
 	motor_set_vel(RIGHT_MOTOR, -15);
 	motor_set_vel(LEFT_MOTOR, -15);
+	uint8_t count = 0;
 	while(1) {
 		if (get_time() - state_time > 15000)
 			return SUCCESS;
 		else if (motor_get_current_MA(FLAG_MOTOR) > 1100) {
+			count ++;
+			pause(5);
+		} else {
+			count = 0;
+		} 
+		if (count >= 5) { 
 			printf("\nFLAG FAIL");
 			//motor_set_vel(FLAG_MOTOR, 0);
 			motor_set_vel(RIGHT_MOTOR,40);
@@ -642,6 +669,7 @@ Status flagbox(Node * node) {
 			motor_set_vel(LEFT_MOTOR,-40);
 			pause(500);
 			//return FAILURE;
+			count = 0;
 		}
 	}
 	return SUCCESS;
@@ -726,9 +754,10 @@ Status acquire_ball(Node * node) {
 		if (digital_read(JAW_BUMP)) {
 			break;
 		} else if (get_time() - state_time > 3000) {
-			printf("\nFAILURE");
-			go_click();
-			return FAILURE;
+			//printf("\nFAILURE");
+			//go_click();
+			servo_set_pos(JAW_SERVO, JAW_CLOSED);
+			return SUCCESS;
 		}
 	}
 
