@@ -54,20 +54,7 @@ int umain () {
 					//go_click();
 					drive(-6,1);
 					Node * node;
-					if (global_position.x < 36) {
-						if (global_position.y < 48) {
-							node = posn_node_back(-30,true);
-						} else {
-							node = posn_node_front(70,true);
-						}
-					}
-					else {
-						if (global_position.y < 48) {
-							node = posn_node_back(70,true);
-						} else {
-							node = posn_node_front(-20,true);
-						}
-					}
+					node = posn_node();
 					servo_set_pos(JAW_SERVO,JAW_CLOSED);
 					servo_set_pos(LIFT_SERVO, LIFT_LOWER);
 					uint8_t bump = 0;
@@ -93,7 +80,7 @@ Node * create_tree() {
 
 	//Create nodes
 	Node * root = root_node();
-/*	Node * corner = corner_orient_node();
+	Node * corner = corner_orient_node();
 	Node * grab = acquire_node(LARGE_BALL2);
 	Node * grab2 = acquire_node(LARGE_BALL3);
 	Node * goal = goal_defend_node();
@@ -122,9 +109,9 @@ Node * create_tree() {
 	add_child(posn3,position_for_flag);
 	add_child(position_for_flag,line_find);
 	add_child(line_find,flag);
-*/
-	Node * lol = posn_node();
-	add_child(root, lol);
+
+	//Node * lol = posn_node();
+	//add_child(root, lol);
 
 
 	return root;

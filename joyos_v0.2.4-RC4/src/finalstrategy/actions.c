@@ -431,8 +431,8 @@ Status dump_balls(Node* node) {
 		goal_y = 16;
 		goal_theta = 0;
 	} else {*/
-		goal_x = 61.5;
-		goal_y = 14;
+		goal_x = 61.5+1;
+		goal_y = 14-1;
 		goal_theta = 0;
 //	}
 
@@ -616,8 +616,8 @@ Status dump_defend(Node* node) {
 	soft_stop_motors(1);
 
 	drive(-5,.75);
-	turn(-135);
-	drive(DUMP_REVERSE_DIST, .75);
+	turn(45);
+	drive(12, .75);
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
 	pause(500);
@@ -629,6 +629,9 @@ Status dump_defend(Node* node) {
 	}
 
 	motor_set_vel(FLAG_MOTOR,0);
+	
+	global_position.x = 54;
+	global_position.y = 18;
 
 	return SUCCESS;
 }
@@ -1132,7 +1135,7 @@ Orientation get_orientation_back (int angle) {
 }
 
 Status sharp_pos(Node* node) {
-/*	if (global_position.x < 36) {
+	if (global_position.x < 36) {
 		if (global_position.y < 48) {
 			turn(-30);
 		} else {
@@ -1145,7 +1148,7 @@ Status sharp_pos(Node* node) {
 		} else {
 			turn(-20);
 		}
-	}*/
+	}
 
 	int anglef = (int)gyro_get_degrees();
 	int servo_set1f = degrees_to_servo_units(-anglef);
@@ -1170,16 +1173,16 @@ Status sharp_pos(Node* node) {
 
 	servo_set_pos(FRONT_SERVO, servo_set1f);
 	servo_set_pos(BACK_SERVO, servo_set1b);
-	pause(400);
-	for (int i = 0; i < 10; i++) {
+	pause(600);
+	for (int i = 0; i < 100; i++) {
 		xf = (xf*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 		xb = (xb*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
 	}
-
+	
 	servo_set_pos(FRONT_SERVO, servo_set2f);
 	servo_set_pos(BACK_SERVO, servo_set2b);
-	pause(400);
-	for (int i = 0; i < 10; i++) {
+	pause(600);
+	for (int i = 0; i < 100; i++) {
 		yf = (yf*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 		yb = (yb*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
 	}
@@ -1200,8 +1203,10 @@ Status sharp_pos(Node* node) {
 		tempx = yf;
 		m.W_sharp = 1;
 	}
+	//printf("\nFront Sensor: %d, %d", (int) tempx, (int) tempy);
 	tempx = tempx - 7.8*(sin((50.2 - anglef)/RAD_TO_DEG));
 	tempy = tempy - 7.8*(cos((50.2 - anglef)/RAD_TO_DEG));
+	//printf("\ncalibrated: %d, %d", (int) tempx, (int) tempy);
 
 	if (m.N_sharp == 1) {
 		m.N = BOARD_Y - tempy;
@@ -1248,8 +1253,10 @@ Status sharp_pos(Node* node) {
 		m.E_sharp = 2;
 		tempx = BOARD_X - yb;
 	}
+	//printf("\nBack Sensor: %d, %d", (int) tempx, (int) tempy);
 	tempx = tempx - 5.8*(sin((51.3 - angleb - 180.0)/RAD_TO_DEG));
 	tempy = tempy - 5.8*(cos((51.3 - angleb - 180.0)/RAD_TO_DEG));
+	//printf("\ncalibrated: %d, %d", (int) tempx, (int) tempy);
 
 	if (m.N_sharp == 2) {
 		m.N = BOARD_Y - tempy;
@@ -1278,7 +1285,7 @@ Status sharp_pos(Node* node) {
 	i = get_closest(p);
 	global_position.x =  p[i].x;
 	global_position.y =  p[i].y;
-	printf("\nx: %d, y: %d", (int)p[i].x, (int)p[i].y);
+	//printf("\nx: %d, y: %d", (int)p[i].x, (int)p[i].y);
 	//go_click();
 	//printf("\n%d %d %d %d %d %d %d %d", (int)p[0].x, (int)p[0].y, (int)p[1].x, (int)p[1].y, (int)p[2].x, (int)p[2].y, (int)p[3].x, (int)p[3].y);
 	return SUCCESS;
