@@ -79,6 +79,15 @@ Node * posn_node_back(float angle, uint8_t use_theta) {
 	return node;
 }
 
+Node * posn_node() {
+	Node * node = (Node*)malloc(sizeof(Node));
+	node->_attempt = sharp_pos;
+	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
+		node->children[i] = NULL;
+	}
+	return node;
+}
+
 Node * test_node(uint8_t id) {
 	Node * node = (Node*)malloc(sizeof(Node));
 	node->_attempt = test_attempt;

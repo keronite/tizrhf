@@ -86,7 +86,7 @@ Status travel_to (Node* node) {
 
 			case (STOP):
 				break;
-				
+
 			case(FAIL_STATE):
 				return FAILURE;
 
@@ -114,7 +114,7 @@ void planning_state(Position *ip, Position *gp, bool do_last_turn) {
 void moving_state(float scale, float start, float end, float dist, Line line, void (*filter)(float,float,float,Line)) {
 
 	state_time = get_time();
-	
+
 	//printf("\nMoving state");
 
 	int motor_multiplier = 1;
@@ -137,7 +137,7 @@ void moving_state(float scale, float start, float end, float dist, Line line, vo
 		pause(20);
 
 		filter(start,end,dist,line);
-		
+
 		if ((get_time() - state_time > 2000) && ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
 			state = FAIL_STATE;
 			soft_stop_motors(1);
@@ -311,7 +311,7 @@ Status drive(float distance, float speed_scale) {
 
 			 case (STOP):
 				 break;
-				 
+
 			case(FAIL_STATE):
 				return FAILURE;
 
@@ -345,8 +345,8 @@ Status turn(float angle) {
 
 			 case (STOP):
 				 break;
-				 
-				 
+
+
 			case(FAIL_STATE):
 				return FAILURE;
 
@@ -380,7 +380,7 @@ void reset_pid_controller(float goal) {
  * servo and deposit balls into goal. Assumes we are near
  * our goal.
  */
- 
+
 int raise_dump() {
 	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
 	pause(500);
@@ -392,7 +392,7 @@ int raise_dump() {
 	}
 	return 0;
 }
- 
+
 Status dump_balls(Node* node) {
 
 	Position p;
@@ -402,7 +402,7 @@ Status dump_balls(Node* node) {
 	node->use_theta = false;
 	node->position = p;
 	Status s = travel_to(node);
-	
+
 	if (s == FAILURE) {
 		return FAILURE;
 	}
@@ -415,7 +415,7 @@ Status dump_balls(Node* node) {
 			break;
 		}
 	}
-	
+
 	//create_thread (raise_dump, 64, 155, "raise");
 	//pause(1500);
 
@@ -425,7 +425,7 @@ Status dump_balls(Node* node) {
 	float goal_x;
 	float goal_y;
 	float goal_theta;
-	
+
 /*	if (count == 0) {
 		goal_x = 59.5;
 		goal_y = 16;
@@ -435,7 +435,7 @@ Status dump_balls(Node* node) {
 		goal_y = 14;
 		goal_theta = 0;
 //	}
-	
+
 	count++;
 
 	uint8_t use_theta = false;
@@ -473,8 +473,8 @@ Status dump_balls(Node* node) {
 			case (STOP):
 				stop_state(goal);
 				break;
-				
-				
+
+
 			case(FAIL_STATE):
 				servo_set_pos(JAW_SERVO,JAW_CLOSED);
 				pause(500);
@@ -735,7 +735,7 @@ Status acquire_ball(Node * node) {
 
 			case(FAIL_STATE):
 				return FAILURE;
-				
+
 			case (STOP):
 				break;
 
@@ -744,12 +744,12 @@ Status acquire_ball(Node * node) {
 		 }
 	}
 	stop_state(goal);
-	
+
 	servo_set_pos(JAW_SERVO, JAW_INSIDE);
 
 	//drive_gather(ACQUIRE_DISTANCE,JAW_OPEN,JAW_INSIDE,ACQUIRE_MULT);//Drive a little
 	state_time = get_time();
-	
+
 	while(1) {
 		if (digital_read(JAW_BUMP)) {
 			break;
@@ -810,15 +810,20 @@ void moving_gather_filter(float start_servo, float end_servo, float dist, Line l
 
 ////////////////////////////////////////////////////////////////
 /*
- * Sharp-distance positioning when on a line
+ * Sharp-distance positioning
  */
-
- //KEVIN: Refactor this when you get the chance.  I wasn't
- //sure if get_abs_pos was deprecated or not
-
 typedef enum {NORTH, SOUTH, WEST, EAST} Orientation;
+typedef struct {
+	float N; int N_sharp;
+	float S; int S_sharp;
+	float W; int W_sharp;
+	float E; int E_sharp;
+} Measurements;
 Orientation get_orientation_front (int angle);
 Orientation get_orientation_back (int angle);
+Position get_pos_from_measurements(Measurements m);
+int get_closest(Position[]);
+float dist_to(Position p);
 
 Status get_pos_front(Node* node) {
 	if (node->use_theta) {
@@ -826,7 +831,7 @@ Status get_pos_front(Node* node) {
 		//go_click();
 		turn(node->position.theta);
 	}
-	
+
 	int angle = (int)gyro_get_degrees();
 	int servo_set1 = degrees_to_servo_units(-angle);
 	int servo_set2 = degrees_to_servo_units(-angle - 90);
@@ -839,13 +844,13 @@ Status get_pos_front(Node* node) {
 	x = 0; y = 0;
 
 	servo_set_pos(FRONT_SERVO, servo_set1);
-	pause(500);
+	pause(1000);
 	for (int i = 0; i < 30; i++) {
 		x = (x*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 	}
 
 	servo_set_pos(FRONT_SERVO, servo_set2);
-	pause(500);
+	pause(1000);
 	for (int i = 0; i < 30; i++) {
 		y = (y*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 	}
@@ -861,24 +866,19 @@ Status get_pos_front(Node* node) {
 	if (s2 == EAST) {
 		global_position.x = BOARD_X - y;
 	}
-	else if (s1 == WEST) {
+	else if (s2 == WEST) {
 		global_position.x = y;
 	}
 	global_position.x = global_position.x - 7.8*(sin((50.2 - angle)/RAD_TO_DEG));
 	global_position.y = global_position.y - 7.8*(cos((50.2 - angle)/RAD_TO_DEG));
 	//global_position.x = 72-18;
 	//global_position.y = 18;
-	//printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
 	//go_click();
 	return SUCCESS;
 }
 
 Status get_pos_back(Node* node) {
-	if (node->use_theta) {
-		//printf("\nROFL");
-		//go_click();
-		turn(node->position.theta);
-	}
 	int angle = (((int)gyro_get_degrees())%360 + 360)%360;
 	int servo_set1 = degrees_to_servo_units2(angle%90);
 	int servo_set2 = degrees_to_servo_units2(angle%90 + 90);
@@ -891,19 +891,18 @@ Status get_pos_back(Node* node) {
 	x = 0; y = 0;
 
 	servo_set_pos(BACK_SERVO, servo_set1);
-	pause(500);
-	for (int i = 0; i < 30; i++) {
+	pause(1000);
+	for (int i = 0; i < 10; i++) {
 		x = (x*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
 	}
 
 	servo_set_pos(BACK_SERVO, servo_set2);
-	pause(500);
-	for (int i = 0; i < 30; i++) {
+	pause(1000);
+	for (int i = 0; i < 10; i++) {
 		y = (y*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
 	}
 
-	//printf("\n 1st: %d, %s 2nd: %d, %s g: %d", x, s1, y, s2, angle%360);
-
+    //printf("\n 1st: %d, %s 2nd: %d, %s g: %d", x, s1, y, s2, angle%360);
 	if (s1 == NORTH) {
 		global_position.y = BOARD_Y - x;
 	}
@@ -930,7 +929,7 @@ Status get_pos_back(Node* node) {
 	}
 	global_position.x = global_position.x - 5.0*(sin((53.2 - angle - 180.0)/RAD_TO_DEG));
 	global_position.y = global_position.y - 5.0*(cos((53.2 - angle - 180.0)/RAD_TO_DEG));
-	//printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
 	return SUCCESS;
 }
 
@@ -1000,4 +999,175 @@ Orientation get_orientation_back (int angle) {
 		os = "W";
 	}
 	return o;
+}
+
+Status sharp_pos(Node* node) {
+
+	int anglef = (int)gyro_get_degrees();
+	int servo_set1f = degrees_to_servo_units(-anglef);
+	int servo_set2f = degrees_to_servo_units(-anglef - 90);
+	int a1f = servo_units_to_degrees(servo_set1f);
+	int a2f = servo_units_to_degrees(servo_set2f);
+	Orientation s1f = get_orientation_front(anglef - a1f);
+	Orientation s2f = get_orientation_front(anglef - a2f);
+	int angleb = (((int)gyro_get_degrees())%360 + 360)%360;
+	int servo_set1b = degrees_to_servo_units2(angleb%90);
+	int servo_set2b = degrees_to_servo_units2(angleb%90 + 90);
+	int a1b = servo_units_to_degrees2(servo_set1b);
+	int a2b = servo_units_to_degrees2(servo_set2b);
+	Orientation s1b = get_orientation_back(angleb - a1b);
+	Orientation s2b = get_orientation_back(angleb - a2b);
+	float xf, yf, xb, yb;
+	xf = 0; yf = 0; xb = 0; yb = 0;
+	Measurements m;
+	m.N = 0; m.W = 0; m.E = 0; m.S = 0;
+	m.E_sharp = 0; m.W_sharp = 0; m.N_sharp = 0; m.S_sharp = 0;
+	float tempx = 0; float tempy = 0;
+
+	servo_set_pos(FRONT_SERVO, servo_set1f);
+	servo_set_pos(BACK_SERVO, servo_set1b);
+	pause(500);
+	for (int i = 0; i < 10; i++) {
+		xf = (xf*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
+		xb = (xb*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
+	}
+
+	servo_set_pos(FRONT_SERVO, servo_set2f);
+	servo_set_pos(BACK_SERVO, servo_set2b);
+	pause(500);
+	for (int i = 0; i < 10; i++) {
+		yf = (yf*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
+		yb = (yb*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
+	}
+
+	if (s1f == NORTH) {
+		tempy = BOARD_Y - xf;
+		m.N_sharp = 1;
+	}
+	else if (s1f == SOUTH) {
+		tempy = xf;
+		m.S_sharp = 1;
+	}
+	if (s2f == EAST) {
+		tempx = BOARD_X - yf;
+		m.E_sharp = 1;
+	}
+	else if (s2f == WEST) {
+		tempx = yf;
+		m.W_sharp = 1;
+	}
+	tempx = tempx - 7.8*(sin((50.2 - anglef)/RAD_TO_DEG));
+	tempy = tempy - 7.8*(cos((50.2 - anglef)/RAD_TO_DEG));
+
+	if (m.N_sharp == 1) {
+		m.N = BOARD_Y - tempy;
+	}
+	if (m.S_sharp == 1) {
+		m.S = tempy;
+	}
+	if (m.E_sharp == 1) {
+		m.E = BOARD_X - tempx;
+	}
+	if (m.W_sharp == 1) {
+		m.W = tempx;
+	}
+
+	if (s1b == NORTH) {
+		m.N_sharp = 2;
+		tempy = BOARD_Y - xb;
+	}
+	else if (s1b == SOUTH) {
+		m.S_sharp = 2;
+		tempy = xb;
+	}
+	else if (s1b == WEST) {
+		m.W_sharp = 2;
+		tempx = xb;
+	}
+	else if (s1b == EAST) {
+		m.E_sharp = 2;
+		tempx = BOARD_X - xb;
+	}
+	if (s2b == NORTH) {
+		m.N_sharp = 2;
+		tempy = BOARD_Y - yb;
+	}
+	else if (s2b == SOUTH) {
+		m.S_sharp = 2;
+		tempy = yb;
+	}
+	else if (s2b == WEST) {
+		m.W_sharp = 2;
+		tempx = yb;
+	}
+	else if (s2b == EAST) {
+		m.E_sharp = 2;
+		tempx = BOARD_X - yb;
+	}
+	tempx = tempx - 5.0*(sin((53.2 - angleb - 180.0)/RAD_TO_DEG));
+	tempy = tempy - 5.0*(cos((53.2 - angleb - 180.0)/RAD_TO_DEG));
+
+	if (m.N_sharp == 2) {
+		m.N = BOARD_Y - tempy;
+	}
+	if (m.S_sharp == 2) {
+		m.S = tempy;
+	}
+	if (m.E_sharp == 2) {
+		m.E = BOARD_X - tempx;
+	}
+	if (m.W_sharp == 2) {
+		m.W = tempx;
+	}
+	Position pos;
+	pos = get_pos_from_measurements(m);
+	global_position.x = pos.x;
+	global_position.y = pos.y;
+
+	return SUCCESS;
+}
+
+Position get_pos_from_measurements(Measurements m) {
+	Position p[4];
+	/*if (m.S < m.N) {
+		p.y = m.S;
+	}
+	else p.y = BOARD_Y - m.N;
+	if (m.W < m.E) {
+		p.x = m.W;
+	}
+	else p.x = BOARD_X - m.E;
+	if (m.N + m.S > BOARD_Y + 12 || m.N + m.S < BOARD_Y - 12){
+		p.x = 0; p.y = 0;
+	}
+	if (m.E + m.W > BOARD_X + 12 || m.E + m.W < BOARD_X - 12) {
+		p.x = 0; p.y = 0; // don was here
+	}*/
+	p[0].x = m.W;
+	p[0].y = m.S;
+	p[1].x = BOARD_X - m.W;
+	p[1].y = m.S;
+	p[2].x = m.W;
+	p[2].y = BOARD_Y - m.N;
+	p[3].x = BOARD_X - m.W;
+	p[3].y = BOARD_Y - m.N;
+	int i;
+	i = get_closest(p);
+	return p[i];
+}
+
+int get_closest(Position p[]) {
+	float max_d = 500.0;
+	int ans = 5;
+	for (int i = 0; i < 4; i++) {
+		if(dist_to(p[i]) < max_d) {
+			max_d = dist_to(p[i]);
+			ans = i;
+		}
+	}
+	return ans;
+}
+
+float dist_to(Position p) {
+	return sqrt((p.x - global_position.x)*(p.x - global_position.x) + (p.y - global_position.y)*(p.y - global_position.y));
 }
