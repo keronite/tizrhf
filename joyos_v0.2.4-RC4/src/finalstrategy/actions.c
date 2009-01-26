@@ -1002,8 +1002,7 @@ Orientation get_orientation_back (int angle) {
 }
 
 Status sharp_pos(Node* node) {
-while(1) {
-	/*if (global_position.x < 36) {
+	if (global_position.x < 36) {
 		if (global_position.y < 48) {
 			turn(-30);
 		} else {
@@ -1016,7 +1015,7 @@ while(1) {
 		} else {
 			turn(-20);
 		}
-	}*/
+	}
 
 	int anglef = (int)gyro_get_degrees();
 	int servo_set1f = degrees_to_servo_units(-anglef);
@@ -1149,7 +1148,7 @@ while(1) {
 	i = get_closest(p);
 	global_position.x =  p[i].x;
 	global_position.y =  p[i].y;
-	printf("\nx: %d, y: %d, i: %d", p[i].x, p[i].y, i);
+	printf("\nx: %d, y: %d, i: %d", (int)p[i].x, (int)p[i].y, i);
 	go_click();
 	//printf("\n%d %d %d %d %d %d %d %d", (int)p[0].x, (int)p[0].y, (int)p[1].x, (int)p[1].y, (int)p[2].x, (int)p[2].y, (int)p[3].x, (int)p[3].y);
 	//Position pos;
