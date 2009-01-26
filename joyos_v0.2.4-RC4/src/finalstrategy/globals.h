@@ -25,7 +25,7 @@
 #define KI .4
 
 //Motor speeds
-#define FORWARD_SPEED 174
+#define FORWARD_SPEED 194
 #define BACKWARD_SPEED 64
 #define TURNING_SPEED 164
 
@@ -43,7 +43,7 @@
 
 //Dumping mechanism constants
 #define DUMP_FORWARD_DIST 7.0
-#define DUMP_REVERSE_DIST -14.0
+#define DUMP_REVERSE_DIST -15.0
 #define DUMPING_SPEED_MULT 2.5
 #define DUMPING_REV_SPEED_MULT 1
 
