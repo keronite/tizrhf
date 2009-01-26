@@ -28,6 +28,7 @@ Node * find_line_node(Line line);
 Node * corner_orient_node();
 Node * posn_node_front(float angle, uint8_t use_theta);
 Node * posn_node_back(float angle, uint8_t use_theta);
+Node * posn_node();
 void add_child(Node* parent, Node* child);
 
 Status attempt(Node* node);

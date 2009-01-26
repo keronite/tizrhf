@@ -84,7 +84,7 @@
 #define ACQUIRE_MULT 1
 
 
-#define BEAT 100
+#define BEAT 25
 
 typedef struct {
 	float x;
