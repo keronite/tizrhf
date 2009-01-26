@@ -366,7 +366,32 @@ void reset_pid_controller(float goal) {
  * servo and deposit balls into goal. Assumes we are near
  * our goal.
  */
+ 
+int raise_dump() {
+	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
+	pause(500);
+	while(1) {
+		if (digital_read(LIFT_BUMP)) {
+			servo_set_pos(LIFT_SERVO, LIFT_TOP);
+			break;
+		}
+	}
+	return 0;
+}
+ 
 Status dump_balls(Node* node) {
+
+	Position p;
+	p.x = 72-26;
+	p.y = 26;
+	p.theta = 0;
+	node->use_theta = false;
+	node->position = p;
+	Status s = travel_to(node);
+	
+	if (s == FAILURE) {
+		return FAILURE;
+	}
 
 	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
 	pause(500);
@@ -376,6 +401,9 @@ Status dump_balls(Node* node) {
 			break;
 		}
 	}
+	
+	//create_thread (raise_dump, 64, 155, "raise");
+	//pause(1500);
 
 
 ///////
@@ -384,15 +412,15 @@ Status dump_balls(Node* node) {
 	float goal_y;
 	float goal_theta;
 	
-	if (count == 0) {
+/*	if (count == 0) {
 		goal_x = 59.5;
 		goal_y = 16;
 		goal_theta = 0;
-	} else {
+	} else {*/
 		goal_x = 61.5;
 		goal_y = 14;
 		goal_theta = 0;
-	}
+//	}
 	
 	count++;
 
@@ -429,17 +457,24 @@ Status dump_balls(Node* node) {
 				break;
 
 			case (STOP):
+				stop_state(goal);
 				break;
 				
 				
 			case(FAIL_STATE):
-				return FAILURE;
+				servo_set_pos(JAW_SERVO,JAW_CLOSED);
+				pause(500);
+				drive(-3,.5);
+				servo_set_pos(JAW_SERVO,JAW_OPEN);
+				pause(500);
+				drive(3,1.15);
+				state = STOP;
+				break;
 
 			default:
 				break;
 		 }
 	}
-	stop_state(goal);
 
 //////
 	//drive_gather(DUMP_FORWARD_DIST,JAW_CLOSED,JAW_OPEN,DUMPING_SPEED_MULT);
@@ -586,14 +621,29 @@ Status line_search(Node * node) {
  */
 
 Status flagbox(Node * node) {
+	state_time = get_time();
 	turn(0);
 	motor_set_vel(FLAG_MOTOR, 225);
-	motor_set_vel(RIGHT_MOTOR, -65);
-	motor_set_vel(LEFT_MOTOR, -65);
-	pause(3000);
+	motor_set_vel(RIGHT_MOTOR, -55);
+	motor_set_vel(LEFT_MOTOR, -55);
+	pause(1500);
 	motor_set_vel(RIGHT_MOTOR, -15);
 	motor_set_vel(LEFT_MOTOR, -15);
-	while(1);
+	while(1) {
+		if (get_time() - state_time > 15000)
+			return SUCCESS;
+		else if (motor_get_current_MA(FLAG_MOTOR) > 1100) {
+			printf("\nFLAG FAIL");
+			//motor_set_vel(FLAG_MOTOR, 0);
+			motor_set_vel(RIGHT_MOTOR,40);
+			motor_set_vel(LEFT_MOTOR,40);
+			pause(1000);
+			motor_set_vel(RIGHT_MOTOR,-40);
+			motor_set_vel(LEFT_MOTOR,-40);
+			pause(500);
+			//return FAILURE;
+		}
+	}
 	return SUCCESS;
 }
 
@@ -666,9 +716,21 @@ Status acquire_ball(Node * node) {
 		 }
 	}
 	stop_state(goal);
+	
+	servo_set_pos(JAW_SERVO, JAW_INSIDE);
 
 	//drive_gather(ACQUIRE_DISTANCE,JAW_OPEN,JAW_INSIDE,ACQUIRE_MULT);//Drive a little
-
+	state_time = get_time();
+	
+	while(1) {
+		if (digital_read(JAW_BUMP)) {
+			break;
+		} else if (get_time() - state_time > 3000) {
+			printf("\nFAILURE");
+			go_click();
+			return FAILURE;
+		}
+	}
 
 	//!!!!
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);

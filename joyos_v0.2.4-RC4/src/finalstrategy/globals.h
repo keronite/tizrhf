@@ -17,6 +17,7 @@
 
 //Digital bump sensor readings
 #define LIFT_BUMP 0
+#define JAW_BUMP 1
 
 //PID control constants.
 #define KP 1.75
@@ -69,7 +70,7 @@
 //Jaw Servo
 #define JAW_OPEN 525
 #define JAW_CLOSED 262
-#define JAW_INSIDE 225
+#define JAW_INSIDE 215
 
 //Lift servo
 #define LIFT_RAISE 600

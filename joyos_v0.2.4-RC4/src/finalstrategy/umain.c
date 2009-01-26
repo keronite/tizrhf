@@ -102,7 +102,7 @@ Node * create_tree() {
 	Node * posn2 = posn_node_front(-15,true);
 	Node * goal2 = goal_node();
 	Node * posn3 = posn_node_front(-110,true);
-	Node * position_for_flag = travel_node(54,60-16+7,90,true);
+	Node * position_for_flag = travel_node(54,60,90,true);
 	Node * line_find = find_line_node(FLAGBOX_LINE_TOP);
 	Node * flag = flag_node();
 	
