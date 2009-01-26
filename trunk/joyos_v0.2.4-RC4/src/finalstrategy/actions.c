@@ -150,9 +150,9 @@ void turning_state() {
 	state_time = get_time();
 
 	float angle = gyro_get_degrees();
-	
+
 	int angle_diff = (int)(target_angle - angle);
-	
+
 	angle_diff %= 360;
 	if (angle_diff < 0) {
 		angle_diff += 360;
@@ -160,7 +160,7 @@ void turning_state() {
 	if (angle_diff > 180) {
 		angle_diff -= 360;
 	}
-	
+
 	target_angle = (int)angle + angle_diff;
 
 	while(state == TURNING) {
@@ -591,7 +591,7 @@ void moving_line_state(Line line) {
 	if (target_distance < 0){
 		motor_multiplier = -1;
 	}
-	
+
 	state_time = get_time();
 	while(state == MOVING)
 	{
@@ -658,8 +658,8 @@ Status flagbox(Node * node) {
 			pause(5);
 		} else {
 			count = 0;
-		} 
-		if (count >= 5) { 
+		}
+		if (count >= 5) {
 			printf("\nFLAG FAIL");
 			//motor_set_vel(FLAG_MOTOR, 0);
 			motor_set_vel(RIGHT_MOTOR,40);
@@ -1002,6 +1002,20 @@ Orientation get_orientation_back (int angle) {
 }
 
 Status sharp_pos(Node* node) {
+	if (global_position.x < 36) {
+		if (global_position.y < 48) {
+			turn(-30);
+		} else {
+			turn(70);
+		}
+	}
+	else {
+		if (global_position.y < 48) {
+			turn(70);
+		} else {
+			turn(-20);
+		}
+	}
 
 	int anglef = (int)gyro_get_degrees();
 	int servo_set1f = degrees_to_servo_units(-anglef);
