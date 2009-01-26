@@ -629,7 +629,7 @@ Status dump_defend(Node* node) {
 	}
 
 	motor_set_vel(FLAG_MOTOR,0);
-	
+
 	global_position.x = 54;
 	global_position.y = 18;
 
@@ -691,9 +691,7 @@ Status attempt_orient(Node * node) {
  * Line search looks for the designated line using position estimates
  */
 
- void moving_line_filter(Line line) {
- 
-	turn(-90);
+void moving_line_filter(Line line) {
 
 	if (stop_press()) {
 		state = STOP;
@@ -708,7 +706,8 @@ Status attempt_orient(Node * node) {
 	if (leds != 0) {
 	//if (maximum x for line) > (our position)
 	//60 > our position
-		if (CM_TO_TICKS((get_line_position(line).x - 6.0)*2.54) < CM_TO_TICKS(global_position.x*2.54) + (left_encoder_change + right_encoder_change)/2) {
+		//if (CM_TO_TICKS((get_line_position(line).x - 6.0)*2.54) < CM_TO_TICKS(global_position.x*2.54) + (left_encoder_change + right_encoder_change)/2) {
+		if (abs(((left_encoder_change + right_encoder_change)*sin(target_angle/RAD_TO_DEG)/2) + global_position.x - get_line_position(line.x) < 6)) {
 			state = FOUND;
 			soft_stop_motors(200);
 		}
@@ -750,6 +749,9 @@ void moving_line_state(Line line) {
 
 Status line_search(Node * node) {
 	//printf("\nLine search");
+	// hardcoded y
+	float a = atan2(-1*(get_line_position(line).x - global_position.x),(64 - global_position.y))*RAD_TO_DEG;
+	turn(a);
 	state = MOVING;
 	target_distance = 100;
 	reset_pid_controller(gyro_get_degrees());
@@ -808,12 +810,12 @@ Status flagbox(Node * node) {
 			count = 0;
 		}
 	}
-	
+
 	drive(-3,1.0);
-	
+
 	global_position.x = 36;
 	global_position.y = 60;
-	
+
 	return SUCCESS;
 }
 
@@ -1186,7 +1188,7 @@ Status sharp_pos(Node* node) {
 		xf = (xf*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 		xb = (xb*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
 	}
-	
+
 	servo_set_pos(FRONT_SERVO, servo_set2f);
 	servo_set_pos(BACK_SERVO, servo_set2b);
 	pause(600);
