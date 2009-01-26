@@ -53,6 +53,15 @@ Node * goal_node() {
 	return node;
 }
 
+Node * goal_defend_node() {
+	Node * node = (Node*)malloc(sizeof(Node));
+	node->_attempt = dump_defend;
+	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
+		node->children[i] = NULL;
+	}
+	return node;
+}
+
 Node * posn_node_front(float angle, uint8_t use_theta) {
 	Node * node = (Node*)malloc(sizeof(Node));
 	Position p;

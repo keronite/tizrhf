@@ -21,6 +21,7 @@ Node * travel_node(float x, float y, float theta, uint8_t use_theta);
 Node * flag_node();
 Node * acquire_node(Ball ball);
 Node * goal_node();
+Node * goal_defend_node();
 Node * line_node(Line line);
 Node * root_node();
 Node * test_node(uint8_t id);

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 
-#define TURNING_THRESHOLD 1.5
+#define TURNING_THRESHOLD 2
 
 #define OFFSET_ESTIMATE -5
 
@@ -168,11 +168,11 @@ void turning_state() {
 		float angle = gyro_get_degrees();
 
 		if (target_angle > angle) {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/8.0 + 60, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/8.0 - 60 + OFFSET_ESTIMATE, -TURNING_SPEED + OFFSET_ESTIMATE, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/7.0 + 70, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/7.0 - 70 + OFFSET_ESTIMATE, -TURNING_SPEED + OFFSET_ESTIMATE, TURNING_SPEED));
 		} else {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/8.0 - 60, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/8.0 + 60 - OFFSET_ESTIMATE, -TURNING_SPEED, TURNING_SPEED - OFFSET_ESTIMATE));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/7.0 - 70, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/7.0 + 70 - OFFSET_ESTIMATE, -TURNING_SPEED, TURNING_SPEED - OFFSET_ESTIMATE));
 		}
 		pause(50);
 
@@ -499,12 +499,137 @@ Status dump_balls(Node* node) {
 	drive(DUMP_REVERSE_DIST, DUMPING_REV_SPEED_MULT);
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
+	pause(500);
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
 			break;
 		}
 	}
+	return SUCCESS;
+}
+
+
+Status dump_defend(Node* node) {
+
+	motor_set_vel(FLAG_MOTOR,-200);
+
+	Position p;
+	p.x = 72-13.5;
+	p.y = 26;
+	p.theta = 0;
+	node->use_theta = false;
+	node->position = p;
+	Status s = travel_to(node);
+
+	if (s == FAILURE) {
+		return FAILURE;
+	}
+
+	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
+	pause(500);
+	while(1) {
+		if (digital_read(LIFT_BUMP)) {
+			servo_set_pos(LIFT_SERVO, LIFT_TOP);
+			break;
+		}
+	}
+
+	//create_thread (raise_dump, 64, 155, "raise");
+	//pause(1500);
+
+
+///////
+
+	float goal_x;
+	float goal_y;
+	float goal_theta;
+
+/*	if (count == 0) {
+		goal_x = 59.5;
+		goal_y = 16;
+		goal_theta = 0;
+	} else {*/
+		goal_x = 61.5;
+		goal_y = 15;
+		goal_theta = 0;
+//	}
+
+	count++;
+
+	uint8_t use_theta = false;
+
+	// initial position and goal values for testing
+	Position init, goal, *ip, *gp;
+	ip = &init;
+	gp = &goal;
+	init.x = global_position.x;
+	init.y = global_position.y;
+	init.theta = gyro_get_degrees();
+	goal.x = goal_x;
+	goal.y = goal_y;
+	goal.theta = goal_theta;
+	bool do_last_turn = use_theta;
+
+	state = PLANNING;
+	planstate = INITIAL_REANGLE;
+
+	while(state != STOP) {
+		 switch (state)
+		 {
+			case (PLANNING):
+				planning_state(ip, gp, do_last_turn);
+				break;
+
+			case (MOVING):
+				moving_state(.8,JAW_CLOSED,JAW_OPEN,8,TOP_LINE,moving_gather_filter);
+				break;
+
+			case (TURNING):
+				turning_state();
+				break;
+
+			case (STOP):
+				stop_state(goal);
+				break;
+
+
+			case(FAIL_STATE):
+				servo_set_pos(JAW_SERVO,JAW_CLOSED);
+				pause(500);
+				drive(-3,.5);
+				servo_set_pos(JAW_SERVO,JAW_OPEN);
+				pause(500);
+				drive(3,1.15);
+				state = STOP;
+				break;
+
+			default:
+				break;
+		 }
+	}
+
+//////
+	//drive_gather(DUMP_FORWARD_DIST,JAW_CLOSED,JAW_OPEN,DUMPING_SPEED_MULT);
+
+	servo_set_pos(LIFT_SERVO, LIFT_MID);
+	soft_stop_motors(1);
+
+	drive(-5,.75);
+	turn(-135);
+	drive(DUMP_REVERSE_DIST, .75);
+	servo_set_pos(JAW_SERVO, JAW_CLOSED);
+	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
+	pause(500);
+	while(1) {
+		if (digital_read(LIFT_BUMP)) {
+			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
+			break;
+		}
+	}
+	
+	motor_set_vel(FLAG_MOTOR,0);
+	
 	return SUCCESS;
 }
 
@@ -605,7 +730,7 @@ void moving_line_state(Line line) {
 		pause(50);
 
 		moving_line_filter(line);
-		if ((get_time() - state_time > 2000) && ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
+		if ((get_time() - state_time > 4000) && ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
 			state = FAIL_STATE;
 			soft_stop_motors(1);
 		}
@@ -653,14 +778,14 @@ Status flagbox(Node * node) {
 	while(1) {
 		if (get_time() - state_time > 15000)
 			return SUCCESS;
-		else if (motor_get_current_MA(FLAG_MOTOR) > 1100) {
+		else if (motor_get_current_MA(FLAG_MOTOR) > 1000) {
 			count ++;
 			pause(5);
 		} else {
 			count = 0;
 		}
 		if (count >= 5) {
-			printf("\nFLAG FAIL");
+			//printf("\nFLAG FAIL");
 			//motor_set_vel(FLAG_MOTOR, 0);
 			motor_set_vel(RIGHT_MOTOR,40);
 			motor_set_vel(LEFT_MOTOR,40);
@@ -722,14 +847,14 @@ Status acquire_ball(Node * node) {
 				goal.y -= 2.5*cos(target_angle/RAD_TO_DEG);
 				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
 				//go_click();
-				moving_state(.75,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
+				moving_state(1.1,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
 				break;
 
 			case (TURNING):
 				turning_state();
-				pause(250);
+				//pause(250);
 				servo_set_pos(JAW_SERVO, JAW_OPEN);//Open servo
-				pause(500);
+				//pause(500);
 				break;
 
 
