@@ -627,9 +627,9 @@ Status dump_defend(Node* node) {
 			break;
 		}
 	}
-	
+
 	motor_set_vel(FLAG_MOTOR,0);
-	
+
 	return SUCCESS;
 }
 
@@ -641,16 +641,22 @@ Status dump_defend(Node* node) {
 Status attempt_orient(Node * node) {
 
 	servo_set_pos(FRONT_SERVO, 255);
-	pause(500);
-	uint16_t wall_front_dist = irdist_read(FRONT_SHARP);
+	pause(300);
+	float wall_front_dist = 0;
+	for (int i=0;i<10;i++) {
+		wall_front_dist = (wall_front_dist * i + irdist_read(FRONT_SHARP))/(i+1);
+	}
 	bool wall_front = false;
 	if (wall_front_dist < 50) {
 		wall_front = true;
 	}
 
 	servo_set_pos(FRONT_SERVO, 0);
-	pause(500);
-	uint16_t wall_right_dist = irdist_read(FRONT_SHARP);
+	pause(300);
+	float wall_right_dist = 0;
+	for (int i=0;i<10;i++) {
+		wall_right_dist = (wall_right_dist * i + irdist_read(FRONT_SHARP))/(i+1);
+	}
 	bool wall_right = false;
 	if (wall_right_dist < 50) {
 		wall_right = true;
@@ -946,7 +952,6 @@ typedef struct {
 } Measurements;
 Orientation get_orientation_front (int angle);
 Orientation get_orientation_back (int angle);
-Position get_pos_from_measurements(Measurements m);
 int get_closest(Position[]);
 float dist_to(Position p);
 
@@ -1127,7 +1132,7 @@ Orientation get_orientation_back (int angle) {
 }
 
 Status sharp_pos(Node* node) {
-	if (global_position.x < 36) {
+/*	if (global_position.x < 36) {
 		if (global_position.y < 48) {
 			turn(-30);
 		} else {
@@ -1140,7 +1145,7 @@ Status sharp_pos(Node* node) {
 		} else {
 			turn(-20);
 		}
-	}
+	}*/
 
 	int anglef = (int)gyro_get_degrees();
 	int servo_set1f = degrees_to_servo_units(-anglef);
@@ -1165,7 +1170,7 @@ Status sharp_pos(Node* node) {
 
 	servo_set_pos(FRONT_SERVO, servo_set1f);
 	servo_set_pos(BACK_SERVO, servo_set1b);
-	pause(500);
+	pause(400);
 	for (int i = 0; i < 10; i++) {
 		xf = (xf*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 		xb = (xb*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
@@ -1173,7 +1178,7 @@ Status sharp_pos(Node* node) {
 
 	servo_set_pos(FRONT_SERVO, servo_set2f);
 	servo_set_pos(BACK_SERVO, servo_set2b);
-	pause(500);
+	pause(400);
 	for (int i = 0; i < 10; i++) {
 		yf = (yf*i + irdist_read(FRONT_SHARP)/2.54)/(i+1);
 		yb = (yb*i + irdist_read(BACK_SHARP)/2.54)/(i+1);
@@ -1243,8 +1248,8 @@ Status sharp_pos(Node* node) {
 		m.E_sharp = 2;
 		tempx = BOARD_X - yb;
 	}
-	tempx = tempx - 5.0*(sin((53.2 - angleb - 180.0)/RAD_TO_DEG));
-	tempy = tempy - 5.0*(cos((53.2 - angleb - 180.0)/RAD_TO_DEG));
+	tempx = tempx - 5.8*(sin((51.3 - angleb - 180.0)/RAD_TO_DEG));
+	tempy = tempy - 5.8*(cos((51.3 - angleb - 180.0)/RAD_TO_DEG));
 
 	if (m.N_sharp == 2) {
 		m.N = BOARD_Y - tempy;
@@ -1273,31 +1278,12 @@ Status sharp_pos(Node* node) {
 	i = get_closest(p);
 	global_position.x =  p[i].x;
 	global_position.y =  p[i].y;
-	printf("\nx: %d, y: %d, i: %d", (int)p[i].x, (int)p[i].y, i);
-	go_click();
+	printf("\nx: %d, y: %d", (int)p[i].x, (int)p[i].y);
+	//go_click();
 	//printf("\n%d %d %d %d %d %d %d %d", (int)p[0].x, (int)p[0].y, (int)p[1].x, (int)p[1].y, (int)p[2].x, (int)p[2].y, (int)p[3].x, (int)p[3].y);
-	//Position pos;
-	//pos = get_pos_from_measurements(m);
-	//global_position.x = pos.x;
-	//global_position.y = pos.y;
 	return SUCCESS;
 }
 
-/*Position get_pos_from_measurements(Measurements m) {
-	Position p[4];
-	p[0].x = m.W;
-	p[0].y = m.S;
-	p[1].x = BOARD_X - m.W;
-	p[1].y = m.S;
-	p[2].x = m.W;
-	p[2].y = BOARD_Y - m.N;
-	p[3].x = BOARD_X - m.W;
-	p[3].y = BOARD_Y - m.N;
-	int i;
-	i = get_closest(p);
-	return p[i];
-}
-*/
 int get_closest(Position p[]) {
 	float max_d = 500.0;
 	int ans = 5;

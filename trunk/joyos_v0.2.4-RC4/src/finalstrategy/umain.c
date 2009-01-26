@@ -93,7 +93,7 @@ Node * create_tree() {
 
 	//Create nodes
 	Node * root = root_node();
-	Node * corner = corner_orient_node();
+/*	Node * corner = corner_orient_node();
 	Node * grab = acquire_node(LARGE_BALL2);
 	Node * grab2 = acquire_node(LARGE_BALL3);
 	Node * goal = goal_defend_node();
@@ -110,9 +110,9 @@ Node * create_tree() {
 	add_child(root,corner);
 	//add_child(corner,grab);
 	//add_child(grab,grab2);
-	
+
 	add_child(corner,grab2);
-	
+
 	add_child(grab2,goal);
 	add_child(goal,posn);
 	add_child(posn,grab3);
@@ -122,9 +122,9 @@ Node * create_tree() {
 	add_child(posn3,position_for_flag);
 	add_child(position_for_flag,line_find);
 	add_child(line_find,flag);
-	
-	//Node * lol = posn_node();
-	//add_child(root, lol);
+*/
+	Node * lol = posn_node();
+	add_child(root, lol);
 
 
 	return root;
