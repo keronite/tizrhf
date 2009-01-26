@@ -1002,7 +1002,8 @@ Orientation get_orientation_back (int angle) {
 }
 
 Status sharp_pos(Node* node) {
-	if (global_position.x < 36) {
+while(1) {
+	/*if (global_position.x < 36) {
 		if (global_position.y < 48) {
 			turn(-30);
 		} else {
@@ -1015,7 +1016,7 @@ Status sharp_pos(Node* node) {
 		} else {
 			turn(-20);
 		}
-	}
+	}*/
 
 	int anglef = (int)gyro_get_degrees();
 	int servo_set1f = degrees_to_servo_units(-anglef);
@@ -1133,30 +1134,33 @@ Status sharp_pos(Node* node) {
 	if (m.W_sharp == 2) {
 		m.W = tempx;
 	}
-	Position pos;
-	pos = get_pos_from_measurements(m);
-	global_position.x = pos.x;
-	global_position.y = pos.y;
 
+	Position p[4];
+	p[0].x = m.W;
+	p[0].y = m.S;
+	p[1].x = BOARD_X - m.E;
+	p[1].y = m.S;
+	p[2].x = m.W;
+	p[2].y = BOARD_Y - m.N;
+	p[3].x = BOARD_X - m.E;
+	p[3].y = BOARD_Y - m.N;
+
+	int i;
+	i = get_closest(p);
+	global_position.x =  p[i].x;
+	global_position.y =  p[i].y;
+	printf("\nx: %d, y: %d, i: %d", p[i].x, p[i].y, i);
+	go_click();
+	//printf("\n%d %d %d %d %d %d %d %d", (int)p[0].x, (int)p[0].y, (int)p[1].x, (int)p[1].y, (int)p[2].x, (int)p[2].y, (int)p[3].x, (int)p[3].y);
+	//Position pos;
+	//pos = get_pos_from_measurements(m);
+	//global_position.x = pos.x;
+	//global_position.y = pos.y;
 	return SUCCESS;
 }
 
-Position get_pos_from_measurements(Measurements m) {
+/*Position get_pos_from_measurements(Measurements m) {
 	Position p[4];
-	/*if (m.S < m.N) {
-		p.y = m.S;
-	}
-	else p.y = BOARD_Y - m.N;
-	if (m.W < m.E) {
-		p.x = m.W;
-	}
-	else p.x = BOARD_X - m.E;
-	if (m.N + m.S > BOARD_Y + 12 || m.N + m.S < BOARD_Y - 12){
-		p.x = 0; p.y = 0;
-	}
-	if (m.E + m.W > BOARD_X + 12 || m.E + m.W < BOARD_X - 12) {
-		p.x = 0; p.y = 0; // don was here
-	}*/
 	p[0].x = m.W;
 	p[0].y = m.S;
 	p[1].x = BOARD_X - m.W;
@@ -1169,7 +1173,7 @@ Position get_pos_from_measurements(Measurements m) {
 	i = get_closest(p);
 	return p[i];
 }
-
+*/
 int get_closest(Position p[]) {
 	float max_d = 500.0;
 	int ans = 5;
