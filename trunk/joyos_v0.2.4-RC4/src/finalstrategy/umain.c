@@ -85,13 +85,17 @@ Node * create_tree() {
 	Node * grab2 = acquire_node(LARGE_BALL3);
 	Node * goal = goal_defend_node();
 	Node * posn = posn_node();
-	Node * grab3 = acquire_node(LARGE_BALL1);
+	Node * grab3 = acquire_node(LARGE_BALL0);
+	Node * grab4 = acquire_node(LARGE_BALL1);
 	Node * posn2 = posn_node();
 	Node * goal2 = goal_node();
+	Node * goal3 = goal_node();
 	Node * posn3 = posn_node();
 	Node * position_for_flag = travel_node(54,60,90,true);
 	Node * line_find = find_line_node(FLAGBOX_LINE_TOP);
 	Node * flag = flag_node();
+	Node * travel0 = travel_node(18,56,0,false);
+	Node * travel1 = travel_node(18,18,0,false);
 
 	//Attach nodes
 	add_child(root,corner);
@@ -102,13 +106,16 @@ Node * create_tree() {
 
 	add_child(grab2,goal);
 	add_child(goal,posn);
-	add_child(posn,grab3);
-	add_child(grab3,posn2);
-	add_child(posn2,goal2);
-	add_child(goal2,posn3);
-	add_child(posn3,position_for_flag);
-	add_child(position_for_flag,line_find);
+	add_child(posn,grab);
+	add_child(grab,grab3);
+	add_child(grab3,line_find);
 	add_child(line_find,flag);
+	add_child(flag,travel0);
+	add_child(travel0,travel1);
+	add_child(travel1,goal2);
+	add_child(goal2,posn2);
+	add_child(posn2,grab4);
+	add_child(grab4,goal3);
 
 	//Node * lol = posn_node();
 	//add_child(root, lol);
