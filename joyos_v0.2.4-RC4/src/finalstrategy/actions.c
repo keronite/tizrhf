@@ -18,7 +18,7 @@ enum planning_state_enum {INITIAL_REANGLE, FORWARD, END_REANGLE, STOP_PLANNING} 
 
 void planning_state(Position *ip, Position *gp, bool do_last_turn);
 void moving_state(float scale, float start, float end, float dist, Line line, void (*filter)(float,float,float,Line));
-void turning_state();
+void turning_state(bool short_turn);
 void stop_state(Position goal);
 
 void planning_filter(float init_angle, float dist, float poli, float end_angle, bool do_last_turn);
@@ -39,7 +39,7 @@ uint16_t left_encoder_base, right_encoder_base;
 float get_turn_angle(float start, float goal);
 
 Status drive(float distance, float scale);
-Status turn(float angle);
+Status turn(float angle, bool short_turn);
 
 uint32_t state_time;
 
@@ -80,7 +80,7 @@ Status travel_to (Node* node) {
 				break;
 
 			case (TURNING):
-				turning_state();
+				turning_state(true);
 				break;
 
 			case (STOP):
@@ -144,23 +144,27 @@ void moving_state(float scale, float start, float end, float dist, Line line, vo
 	}
 }
 
-void turning_state() {
+void turning_state(bool short_turn) {
 	//printf("\nTurning state");
 	state_time = get_time();
 
 	float angle = gyro_get_degrees();
+	
+	if (short_turn) {
 
-	int angle_diff = (int)(target_angle - angle);
+		int angle_diff = (int)(target_angle - angle);
 
-	angle_diff %= 360;
-	if (angle_diff < 0) {
-		angle_diff += 360;
+		angle_diff %= 360;
+		if (angle_diff < 0) {
+			angle_diff += 360;
+		}
+		if (angle_diff > 180) {
+			angle_diff -= 360;
+		}
+
+		target_angle = (int)angle + angle_diff;
+		
 	}
-	if (angle_diff > 180) {
-		angle_diff -= 360;
-	}
-
-	target_angle = (int)angle + angle_diff;
 
 	while(state == TURNING) {
 
@@ -325,7 +329,7 @@ Status drive(float distance, float speed_scale) {
 /*
  * Action turn(angle), turns to a certain angle.
  */
-Status turn(float angle) {
+Status turn(float angle, bool short_turn) {
 	state = TURNING;
 	planstate = STOP_PLANNING;
 	target_angle = angle;
@@ -339,7 +343,7 @@ Status turn(float angle) {
 				 break;
 
 			 case (TURNING):
-				 turning_state();
+				 turning_state(short_turn);
 				 break;
 
 			 case (STOP):
@@ -408,10 +412,16 @@ Status dump_balls(Node* node) {
 
 	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
 	pause(1500);
+	
+	state_time = get_time();
+	
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_TOP);
 			break;
+		} else if (get_time() - state_time < 6000) {
+			servo_set_pos(LIFT_SERVO,LIFT_TOP);
+			return FAILURE;
 		}
 	}
 	
@@ -468,7 +478,7 @@ Status dump_balls(Node* node) {
 				break;
 
 			case (TURNING):
-				turning_state();
+				turning_state(true);
 				break;
 
 			case (STOP):
@@ -501,10 +511,18 @@ Status dump_balls(Node* node) {
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
 	pause(1000);
+	
+	state_time = get_time();
+	
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
 			break;
+		} else if (get_time() - state_time < 5000) {
+			servo_set_pos(LIFT_SERVO,LIFT_BOTTOM);
+			drive(-3,1);
+			servo_set_pos(LIFT_SERVO,LIFT_LOWER);
+			state_time = get_time();
 		}
 	}
 	return SUCCESS;
@@ -529,10 +547,15 @@ Status dump_defend(Node* node) {
 
 	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
 	pause(1500);
+	state_time = get_time();
+	
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_TOP);
 			break;
+		} else if (get_time() - state_time < 6000) {
+			servo_set_pos(LIFT_SERVO,LIFT_TOP);
+			return FAILURE;
 		}
 	}
 
@@ -587,7 +610,7 @@ Status dump_defend(Node* node) {
 				break;
 
 			case (TURNING):
-				turning_state();
+				turning_state(true);
 				break;
 
 			case (STOP):
@@ -617,15 +640,22 @@ Status dump_defend(Node* node) {
 	soft_stop_motors(1);
 
 	drive(-5,.75);
-	turn(45);
+	turn(45,true);
 	drive(12, .75);
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
 	pause(1000);
+	state_time = get_time();
+	
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
 			break;
+		} else if (get_time() - state_time < 5000) {
+			servo_set_pos(LIFT_SERVO,LIFT_BOTTOM);
+			drive(-3,1);
+			servo_set_pos(LIFT_SERVO,LIFT_LOWER);
+			state_time = get_time();
 		}
 	}
 
@@ -646,7 +676,7 @@ Status attempt_orient(Node * node) {
 
 	servo_set_pos(FRONT_SERVO, 255);
 	servo_set_pos(BACK_SERVO, 85);
-	pause(200);
+	//pause(200);
 	float wall_front_dist = 0;
 	float wall_left_dist = 0;
 	for (int i=0;i<10;i++) {
@@ -758,7 +788,7 @@ Status line_search(Node * node) {
 	//printf("\nLine search");
 	// hardcoded y
 	float a = atan2(-1*(get_line_position(node->line).x - global_position.x),(62 - global_position.y))*RAD_TO_DEG;
-	turn(a);
+	turn(a,true);
 	state = MOVING;
 	target_distance = 100;
 	reset_pid_controller(gyro_get_degrees());
@@ -787,7 +817,7 @@ Status line_search(Node * node) {
 
 Status flagbox(Node * node) {
 	state_time = get_time();
-	turn(0);
+	turn(0,true);
 	motor_set_vel(FLAG_MOTOR, 235);
 	motor_set_vel(RIGHT_MOTOR, -55);
 	motor_set_vel(LEFT_MOTOR, -55);
@@ -817,7 +847,7 @@ Status flagbox(Node * node) {
 			motor_set_vel(RIGHT_MOTOR,40);
 			motor_set_vel(LEFT_MOTOR,40);
 			pause(1000);
-			turn(0);
+			turn(0,true);
 			motor_set_vel(RIGHT_MOTOR,-40);
 			motor_set_vel(LEFT_MOTOR,-40);
 			pause(500);
@@ -881,7 +911,7 @@ Status acquire_ball(Node * node) {
 				break;
 
 			case (TURNING):
-				turning_state();
+				turning_state(true);
 				//pause(250);
 				servo_set_pos(JAW_SERVO, JAW_OPEN);//Open servo
 				//pause(500);
@@ -981,7 +1011,7 @@ Status acquire_ball_fast(Node * node) {
 				break;
 
 			case (TURNING):
-				turning_state();
+				turning_state(true);
 				//pause(250);
 				servo_set_pos(JAW_SERVO, JAW_OPEN);//Open servo
 				//pause(500);
@@ -1025,6 +1055,8 @@ Status acquire_ball_fast(Node * node) {
 	//global_position.y += deltaY;
 	//printf("\n x = %f y = %f", global_position.x, global_position.y);
 	//go_click();
+	turn(180,false);
+	
 	return SUCCESS;
 	//Stop
 }
@@ -1084,7 +1116,7 @@ Status get_pos_front(Node* node) {
 	if (node->use_theta) {
 		//printf("\nROFL");
 		//go_click();
-		turn(node->position.theta);
+		turn(node->position.theta,true);
 	}
 
 	int angle = (int)gyro_get_degrees();
@@ -1259,16 +1291,16 @@ Orientation get_orientation_back (int angle) {
 Status sharp_pos(Node* node) {
 	if (global_position.x < 36) {
 		if (global_position.y < 48) {
-			turn(-30);
+			turn(-30,true);
 		} else {
-			turn(70);
+			turn(70,true);
 		}
 	}
 	else {
 		if (global_position.y < 48) {
-			turn(70);
+			turn(70,true);
 		} else {
-			turn(-20);
+			turn(-20,true);
 		}
 	}
 
