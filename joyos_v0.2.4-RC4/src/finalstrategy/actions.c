@@ -54,7 +54,6 @@ Status travel_to (Node* node) {
 
 	uint8_t use_theta = node->use_theta;
 
-	// initial position and goal values for testing
 	Position init, goal, *ip, *gp;
 	ip = &init;
 	gp = &goal;
@@ -707,7 +706,7 @@ void moving_line_filter(Line line) {
 	//if (maximum x for line) > (our position)
 	//60 > our position
 		//if (CM_TO_TICKS((get_line_position(line).x - 6.0)*2.54) < CM_TO_TICKS(global_position.x*2.54) + (left_encoder_change + right_encoder_change)/2) {
-		if (abs(((left_encoder_change + right_encoder_change)*sin(target_angle/RAD_TO_DEG)/2) + global_position.x - get_line_position(line.x) < 6)) {
+		if (abs(((left_encoder_change + right_encoder_change)*sin(target_angle/RAD_TO_DEG)/2) + global_position.x - get_line_position(line).x < 6)) {
 			state = FOUND;
 			soft_stop_motors(200);
 		}
@@ -750,7 +749,7 @@ void moving_line_state(Line line) {
 Status line_search(Node * node) {
 	//printf("\nLine search");
 	// hardcoded y
-	float a = atan2(-1*(get_line_position(line).x - global_position.x),(64 - global_position.y))*RAD_TO_DEG;
+	float a = atan2(-1*(get_line_position(node->line).x - global_position.x),(62 - global_position.y))*RAD_TO_DEG;
 	turn(a);
 	state = MOVING;
 	target_distance = 100;
