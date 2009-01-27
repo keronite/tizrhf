@@ -112,7 +112,8 @@ Node * create_tree() {
 	add_child(line_find,flag);
 	add_child(flag,travel0);
 	add_child(travel0,travel1);
-	add_child(travel1,goal2);
+	add_child(travel1,posn3);
+	add_child(posn3,goal2);
 	add_child(goal2,posn2);
 	add_child(posn2,grab4);
 	add_child(grab4,goal3);

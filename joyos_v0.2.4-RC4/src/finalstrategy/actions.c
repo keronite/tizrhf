@@ -514,7 +514,7 @@ Status dump_defend(Node* node) {
 	motor_set_vel(FLAG_MOTOR,-200);
 
 	Position p;
-	p.x = 72-13.5;
+	p.x = 72-14;
 	p.y = 26;
 	p.theta = 0;
 	node->use_theta = false;
@@ -549,7 +549,7 @@ Status dump_defend(Node* node) {
 		goal_y = 16;
 		goal_theta = 0;
 	} else {*/
-		goal_x = 61.5;
+		goal_x = 61;
 		goal_y = 15;
 		goal_theta = 0;
 //	}
@@ -706,7 +706,7 @@ void moving_line_filter(Line line) {
 	//if (maximum x for line) > (our position)
 	//60 > our position
 		//if (CM_TO_TICKS((get_line_position(line).x - 6.0)*2.54) < CM_TO_TICKS(global_position.x*2.54) + (left_encoder_change + right_encoder_change)/2) {
-		if (abs(((left_encoder_change + right_encoder_change)*sin(target_angle/RAD_TO_DEG)/2) + global_position.x - get_line_position(line).x < 6)) {
+		if (abs(((left_encoder_change + right_encoder_change)*(-1)*sin(target_angle/RAD_TO_DEG)/2) + global_position.x - get_line_position(line).x < 6)) {
 			state = FOUND;
 			soft_stop_motors(200);
 		}
@@ -811,6 +811,8 @@ Status flagbox(Node * node) {
 	}
 
 	drive(-3,1.0);
+	
+	motor_set_vel(FLAG_MOTOR,0);
 
 	global_position.x = 36;
 	global_position.y = 60;
@@ -916,6 +918,110 @@ Status acquire_ball(Node * node) {
 	return SUCCESS;
 	//Stop
 }
+
+
+////////////////////////////////////////////////////////////////////
+/*
+ * Pick up a ball FAST
+ */
+
+Status acquire_ball_fast(Node * node) {
+	//servo_set_pos(JAW_SERVO, 150*1.5);
+	//!!!!!!!!
+
+	Position p = get_ball_position(node->ball);
+	//float angle = gyro_get_degrees();
+	float goal_x = p.x;// + 2.0*sin(angle/RAD_TO_DEG);
+	float goal_y = p.y;// - 2.0*cos(angle/RAD_TO_DEG);
+	float goal_theta = 0;
+
+	uint8_t use_theta = false;
+
+	// initial position and goal values for testing
+	Position init, goal, *ip, *gp;
+	ip = &init;
+	gp = &goal;
+	init.x = global_position.x;
+	init.y = global_position.y;
+	init.theta = global_position.theta;
+	goal.x = goal_x;
+	goal.y = goal_y;
+	goal.theta = goal_theta;
+	bool do_last_turn = use_theta;
+
+	state = PLANNING;
+	planstate = INITIAL_REANGLE;
+
+	while(state != STOP) {
+		 switch (state)
+		 {
+			case (PLANNING):
+				planning_state(ip, gp, do_last_turn);
+				break;
+
+			case (MOVING):
+				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
+				//go_click();
+				drive(target_distance - 26,1.25);
+				state = MOVING;
+				target_distance = 26 - 2.5;
+				//go_click();
+				goal.x += 2.5*sin(target_angle/RAD_TO_DEG);
+				goal.y -= 2.5*cos(target_angle/RAD_TO_DEG);
+				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
+				//go_click();
+				moving_state(.6,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
+				break;
+
+			case (TURNING):
+				turning_state();
+				//pause(250);
+				servo_set_pos(JAW_SERVO, JAW_OPEN);//Open servo
+				//pause(500);
+				break;
+
+
+			case(FAIL_STATE):
+				return FAILURE;
+
+			case (STOP):
+				break;
+
+			default:
+				break;
+		 }
+	}
+	stop_state(goal);
+
+	servo_set_pos(JAW_SERVO, JAW_INSIDE);
+
+	//drive_gather(ACQUIRE_DISTANCE,JAW_OPEN,JAW_INSIDE,ACQUIRE_MULT);//Drive a little
+	state_time = get_time();
+
+	while(1) {
+		if (digital_read(JAW_BUMP)) {
+			break;
+		} else if (get_time() - state_time > 3000) {
+			//printf("\nFAILURE");
+			//go_click();
+			servo_set_pos(JAW_SERVO, JAW_CLOSED);
+			return SUCCESS;
+		}
+	}
+
+	//!!!!
+	servo_set_pos(JAW_SERVO, JAW_CLOSED);
+	//float heading = gyro_get_degrees();
+	//float deltaX = -ACQUIRE_DISTANCE*sin(heading/(float)RAD_TO_DEG);
+	//float deltaY = ACQUIRE_DISTANCE*cos(heading/(float)RAD_TO_DEG);
+	//global_position.x += deltaX;
+	//global_position.y += deltaY;
+	//printf("\n x = %f y = %f", global_position.x, global_position.y);
+	//go_click();
+	return SUCCESS;
+	//Stop
+}
+
 
 
 void moving_gather_filter(float start_servo, float end_servo, float dist, Line line) {

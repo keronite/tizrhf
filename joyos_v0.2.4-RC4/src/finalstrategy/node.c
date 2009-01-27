@@ -157,3 +157,13 @@ Node * acquire_node(Ball ball) {
 	}
 	return node;
 }
+
+Node * acquire_node_fast(Ball ball) {
+	Node * node = (Node*)malloc(sizeof(Node));
+	node->_attempt = acquire_ball_fast;
+	node->ball = ball;
+	for (uint8_t i = 0; i < NODE_CHILDREN; i++) {
+		node->children[i] = NULL;
+	}
+	return node;
+}
