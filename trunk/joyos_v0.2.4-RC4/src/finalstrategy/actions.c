@@ -424,7 +424,7 @@ Status dump_balls(Node* node) {
 			return FAILURE;
 		}
 	}
-	
+
 	sharp_pos(node);
 
 	//create_thread (raise_dump, 64, 155, "raise");
@@ -728,7 +728,7 @@ Status attempt_orient(Node * node) {
 /*
  * Line search looks for the designated line using position estimates
  */
- 
+
  void moving_line_filter(Line line) {
 
 	if (stop_press()) {
@@ -828,7 +828,7 @@ Status flagbox(Node * node) {
 	while(1) {
 		if (get_time() - state_time > 15000) {
 			drive(3,1.0);
-			
+
 			motor_set_vel(FLAG_MOTOR,0);
 
 			global_position.x = 36;
@@ -1305,13 +1305,13 @@ Status sharp_pos(Node* node) {
 	}
 
 	int anglef = (int)gyro_get_degrees();
-	int servo_set1f = degrees_to_servo_units(-anglef);
-	int servo_set2f = degrees_to_servo_units(-anglef - 90);
+	int angleb = (((int)gyro_get_degrees())%360 + 360)%360;
+	int servo_set1f = degrees_to_servo_units(angleb%90);
+	int servo_set2f = degrees_to_servo_units(angleb%90 + 90);
 	int a1f = servo_units_to_degrees(servo_set1f);
 	int a2f = servo_units_to_degrees(servo_set2f);
 	Orientation s1f = get_orientation_front(anglef - a1f);
 	Orientation s2f = get_orientation_front(anglef - a2f);
-	int angleb = (((int)gyro_get_degrees())%360 + 360)%360;
 	int servo_set1b = degrees_to_servo_units2(angleb%90);
 	int servo_set2b = degrees_to_servo_units2(angleb%90 + 90);
 	int a1b = servo_units_to_degrees2(servo_set1b);
@@ -1349,6 +1349,14 @@ Status sharp_pos(Node* node) {
 		tempy = xf;
 		m.S_sharp = 1;
 	}
+	else if (s1f == WEST) {
+		tempx = xf;
+		m.W_sharp = 1;
+	}
+	else if (s1f == EAST) {
+		tempx = BOARD_X - xf;
+		m.E_sharp = 1;
+	}
 	if (s2f == EAST) {
 		tempx = BOARD_X - yf;
 		m.E_sharp = 1;
@@ -1356,6 +1364,14 @@ Status sharp_pos(Node* node) {
 	else if (s2f == WEST) {
 		tempx = yf;
 		m.W_sharp = 1;
+	}
+	else if (s2f == SOUTH) {
+		tempy = yf;
+		m.S_sharp = 1;
+	}
+	else if (s2f == NORTH) {
+		tempy = BOARD_Y - yf;
+		m.N_sharp = 1;
 	}
 	//printf("\nFront Sensor: %d, %d", (int) tempx, (int) tempy);
 	tempx = tempx - 7.8*(sin((50.2 - anglef)/RAD_TO_DEG));
@@ -1442,8 +1458,10 @@ Status sharp_pos(Node* node) {
 	//printf("\nx: %d, y: %d", (int)p[i].x, (int)p[i].y);
 	//go_click();
 	//printf("\n%d %d %d %d %d %d %d %d", (int)p[0].x, (int)p[0].y, (int)p[1].x, (int)p[1].y, (int)p[2].x, (int)p[2].y, (int)p[3].x, (int)p[3].y);
+
 	return SUCCESS;
 }
+
 
 int get_closest(Position p[]) {
 	float max_d = 500.0;
