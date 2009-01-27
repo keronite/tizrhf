@@ -127,7 +127,7 @@ float clamp (float val, float min, float max) {
 }
 
 int degrees_to_servo_units(int degrees) {
-	int servo_angle = (int)((degrees*227.0/90.0) + 227)%454 + 17;
+	int servo_angle = (int) ((180 - degrees)*227.0/90.0)%454 + 17;
 	if (servo_angle < 0) {
 		servo_angle += 512;
 	}
