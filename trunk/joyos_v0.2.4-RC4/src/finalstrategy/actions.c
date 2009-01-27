@@ -549,7 +549,7 @@ Status dump_defend(Node* node) {
 		goal_y = 16;
 		goal_theta = 0;
 	} else {*/
-		goal_x = 61;
+		goal_x = 60;
 		goal_y = 15;
 		goal_theta = 0;
 //	}
@@ -643,7 +643,7 @@ Status dump_defend(Node* node) {
 Status attempt_orient(Node * node) {
 
 	servo_set_pos(FRONT_SERVO, 255);
-	pause(300);
+	pause(400);
 	float wall_front_dist = 0;
 	for (int i=0;i<10;i++) {
 		wall_front_dist = (wall_front_dist * i + irdist_read(FRONT_SHARP))/(i+1);
@@ -654,7 +654,7 @@ Status attempt_orient(Node * node) {
 	}
 
 	servo_set_pos(FRONT_SERVO, 0);
-	pause(300);
+	pause(400);
 	float wall_right_dist = 0;
 	for (int i=0;i<10;i++) {
 		wall_right_dist = (wall_right_dist * i + irdist_read(FRONT_SHARP))/(i+1);
@@ -689,8 +689,8 @@ Status attempt_orient(Node * node) {
 /*
  * Line search looks for the designated line using position estimates
  */
-
-void moving_line_filter(Line line) {
+ 
+ void moving_line_filter(Line line) {
 
 	if (stop_press()) {
 		state = STOP;
@@ -705,10 +705,9 @@ void moving_line_filter(Line line) {
 	if (leds != 0) {
 	//if (maximum x for line) > (our position)
 	//60 > our position
-		//if (CM_TO_TICKS((get_line_position(line).x - 6.0)*2.54) < CM_TO_TICKS(global_position.x*2.54) + (left_encoder_change + right_encoder_change)/2) {
-		if (abs(((left_encoder_change + right_encoder_change)*(-1)*sin(target_angle/RAD_TO_DEG)/2) + global_position.x - get_line_position(line).x < 6)) {
+		if (CM_TO_TICKS((get_line_position(line).x + 6.0)*2.54) > CM_TO_TICKS(global_position.x*2.54) - (left_encoder_change + right_encoder_change)/2) {
 			state = FOUND;
-			soft_stop_motors(200);
+			//soft_stop_motors(200);
 		}
 	}
 }
@@ -788,8 +787,15 @@ Status flagbox(Node * node) {
 	motor_set_vel(LEFT_MOTOR, -15);
 	uint8_t count = 0;
 	while(1) {
-		if (get_time() - state_time > 15000)
+		if (get_time() - state_time > 15000) {
+			drive(3,1.0);
+			
+			motor_set_vel(FLAG_MOTOR,0);
+
+			global_position.x = 36;
+			global_position.y = 60;
 			return SUCCESS;
+		}
 		else if (motor_get_current_MA(FLAG_MOTOR) > 1000) {
 			count ++;
 			pause(5);
@@ -810,12 +816,6 @@ Status flagbox(Node * node) {
 		}
 	}
 
-	drive(-3,1.0);
-	
-	motor_set_vel(FLAG_MOTOR,0);
-
-	global_position.x = 36;
-	global_position.y = 60;
 
 	return SUCCESS;
 }

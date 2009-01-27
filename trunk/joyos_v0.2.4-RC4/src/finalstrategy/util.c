@@ -73,8 +73,8 @@ Position get_ball_position(Ball ball) {
 			p.y = 48;
 			break;
 		case (SMALL_BALL8):
-			p.x = 6;
-			p.y = 42;
+			p.x = 9;
+			p.y = 41;
 			break;
 		case (SMALL_BALL9):
 			p.x = 66;
@@ -101,12 +101,12 @@ Position get_ball_position(Ball ball) {
 			p.y = 60;
 			break;
 		case (LARGE_BALL1):
-			p.x = 47.5;
-			p.y = 60;
+			p.x = 47;
+			p.y = 62;
 			break;
 		case (LARGE_BALL2):
 			p.x = 25;
-			p.y = 32;
+			p.y = 33;
 			break;
 		case (LARGE_BALL3):
 			p.x = 53;
