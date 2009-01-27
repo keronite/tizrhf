@@ -68,9 +68,9 @@
 #define LINE_OFFSET_STRONG 10
 
 //Jaw Servo
-#define JAW_OPEN 525
-#define JAW_CLOSED 262
-#define JAW_INSIDE 215
+#define JAW_OPEN 475
+#define JAW_CLOSED 220
+#define JAW_INSIDE 180
 
 //Lift servo
 #define LIFT_RAISE 600
