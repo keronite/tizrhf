@@ -709,7 +709,7 @@ Status attempt_orient(Node * node) {
 	//60 > our position
 		if (CM_TO_TICKS((get_line_position(line).x + 6.0)*2.54) > CM_TO_TICKS(global_position.x*2.54) - (left_encoder_change + right_encoder_change)/2) {
 			state = FOUND;
-			//soft_stop_motors(200);
+			soft_stop_motors(10);
 		}
 	}
 }
