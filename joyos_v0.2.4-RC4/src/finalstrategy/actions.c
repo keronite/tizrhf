@@ -130,8 +130,8 @@ void moving_state(float scale, float start, float end, float dist, Line line, vo
 
 		float output = update_pid_input(&controller, input);
 
-		motor_set_vel(RIGHT_MOTOR, (float)motor_multiplier * scale * (float)(FORWARD_SPEED + (int)output + OFFSET_ESTIMATE));
-		motor_set_vel(LEFT_MOTOR, (float)motor_multiplier * scale * (float)(FORWARD_SPEED - (int)output - OFFSET_ESTIMATE));
+		motor_set_vel(RIGHT_MOTOR, clamp((float)motor_multiplier * scale * (float)(FORWARD_SPEED + (int)output + OFFSET_ESTIMATE),-255,255));
+		motor_set_vel(LEFT_MOTOR, clamp((float)motor_multiplier * scale * (float)(FORWARD_SPEED - (int)output - OFFSET_ESTIMATE),-255,255));
 
 		pause(20);
 
@@ -645,16 +645,23 @@ Status dump_defend(Node* node) {
 Status attempt_orient(Node * node) {
 
 	servo_set_pos(FRONT_SERVO, 255);
-	pause(400);
+	servo_set_pos(BACK_SERVO, 85);
+	pause(200);
 	float wall_front_dist = 0;
+	float wall_left_dist = 0;
 	for (int i=0;i<10;i++) {
 		wall_front_dist = (wall_front_dist * i + irdist_read(FRONT_SHARP))/(i+1);
+		wall_left_dist = (wall_left_dist * i + irdist_read(BACK_SHARP))/(i+1);
 	}
 	bool wall_front = false;
+	bool wall_left = false;
 	if (wall_front_dist < 50) {
 		wall_front = true;
 	}
-
+	if (wall_left_dist < 50) {
+		wall_left = true;
+	}
+/*
 	servo_set_pos(FRONT_SERVO, 0);
 	pause(400);
 	float wall_right_dist = 0;
@@ -665,22 +672,22 @@ Status attempt_orient(Node * node) {
 	if (wall_right_dist < 50) {
 		wall_right = true;
 	}
-
-	if (wall_front && wall_right) {
-		global_position.x = 8.5;
+*/
+	if (wall_front && !wall_left) {
+		global_position.x = 8;
 		global_position.y = 10;
 		gyro_set_degrees(-180);
-	} else if (wall_front && !wall_right) {
+	} else if (wall_front && wall_left) {
 		global_position.x = 11;
 		global_position.y = 8;
 		gyro_set_degrees(90);
-	} else if (!wall_front && wall_right) {
-		global_position.x = 7.5;
+	} else if (!wall_front && !wall_left) {
+		global_position.x = 7;
 		global_position.y = 8;
 		gyro_set_degrees(-90);
 	} else {
 		global_position.x = 8;
-		global_position.y = 6.5;
+		global_position.y = 7;
 		gyro_set_degrees(0);
 	}
 
@@ -970,7 +977,7 @@ Status acquire_ball_fast(Node * node) {
 				goal.y -= 2.5*cos(target_angle/RAD_TO_DEG);
 				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
 				//go_click();
-				moving_state(1.1,JAW_OPEN,JAW_INSIDE,18,TOP_LINE,moving_gather_filter);
+				moving_state(1.2,JAW_OPEN,JAW_INSIDE,18,TOP_LINE,moving_gather_filter);
 				break;
 
 			case (TURNING):
@@ -1121,7 +1128,7 @@ Status get_pos_front(Node* node) {
 	global_position.y = global_position.y - 7.8*(cos((50.2 - angle)/RAD_TO_DEG));
 	//global_position.x = 72-18;
 	//global_position.y = 18;
-	printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	//printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
 	//go_click();
 	return SUCCESS;
 }
@@ -1177,7 +1184,7 @@ Status get_pos_back(Node* node) {
 	}
 	global_position.x = global_position.x - 5.0*(sin((53.2 - angle - 180.0)/RAD_TO_DEG));
 	global_position.y = global_position.y - 5.0*(cos((53.2 - angle - 180.0)/RAD_TO_DEG));
-	printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
+	//printf("\nx: %f, y: %f", (double)global_position.x, (double)global_position.y);
 	return SUCCESS;
 }
 
@@ -1400,8 +1407,8 @@ Status sharp_pos(Node* node) {
 	i = get_closest(p);
 	global_position.x =  p[i].x;
 	global_position.y =  p[i].y;
-	printf("\nx: %d, y: %d", (int)p[i].x, (int)p[i].y);
-	go_click();
+	//printf("\nx: %d, y: %d", (int)p[i].x, (int)p[i].y);
+	//go_click();
 	//printf("\n%d %d %d %d %d %d %d %d", (int)p[0].x, (int)p[0].y, (int)p[1].x, (int)p[1].y, (int)p[2].x, (int)p[2].y, (int)p[3].x, (int)p[3].y);
 	return SUCCESS;
 }
