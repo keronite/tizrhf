@@ -407,13 +407,15 @@ Status dump_balls(Node* node) {
 	}
 
 	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
-	pause(500);
+	pause(1500);
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_TOP);
 			break;
 		}
 	}
+	
+	sharp_pos(node);
 
 	//create_thread (raise_dump, 64, 155, "raise");
 	//pause(1500);
@@ -430,7 +432,7 @@ Status dump_balls(Node* node) {
 		goal_y = 16;
 		goal_theta = 0;
 	} else {*/
-		goal_x = 61.5+1;
+		goal_x = 61.5;
 		goal_y = 14-1;
 		goal_theta = 0;
 //	}
@@ -498,7 +500,7 @@ Status dump_balls(Node* node) {
 	drive(DUMP_REVERSE_DIST, DUMPING_REV_SPEED_MULT);
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
-	pause(500);
+	pause(1000);
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
@@ -526,7 +528,7 @@ Status dump_defend(Node* node) {
 	}
 
 	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
-	pause(500);
+	pause(1500);
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_TOP);
@@ -619,7 +621,7 @@ Status dump_defend(Node* node) {
 	drive(12, .75);
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
-	pause(500);
+	pause(1000);
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
@@ -779,12 +781,12 @@ Status line_search(Node * node) {
 Status flagbox(Node * node) {
 	state_time = get_time();
 	turn(0);
-	motor_set_vel(FLAG_MOTOR, 225);
+	motor_set_vel(FLAG_MOTOR, 235);
 	motor_set_vel(RIGHT_MOTOR, -55);
 	motor_set_vel(LEFT_MOTOR, -55);
-	pause(1500);
-	motor_set_vel(RIGHT_MOTOR, -15);
-	motor_set_vel(LEFT_MOTOR, -15);
+	pause(2000);
+	motor_set_vel(RIGHT_MOTOR, -25);
+	motor_set_vel(LEFT_MOTOR, -25);
 	uint8_t count = 0;
 	while(1) {
 		if (get_time() - state_time > 15000) {
@@ -808,6 +810,7 @@ Status flagbox(Node * node) {
 			motor_set_vel(RIGHT_MOTOR,40);
 			motor_set_vel(LEFT_MOTOR,40);
 			pause(1000);
+			turn(0);
 			motor_set_vel(RIGHT_MOTOR,-40);
 			motor_set_vel(LEFT_MOTOR,-40);
 			pause(500);
@@ -962,15 +965,12 @@ Status acquire_ball_fast(Node * node) {
 			case (MOVING):
 				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
 				//go_click();
-				drive(target_distance - 26,1.25);
-				state = MOVING;
-				target_distance = 26 - 2.5;
-				//go_click();
+				target_distance -= 2.5;
 				goal.x += 2.5*sin(target_angle/RAD_TO_DEG);
 				goal.y -= 2.5*cos(target_angle/RAD_TO_DEG);
 				//printf("\ngx=%.2f, gy=%.2f, d=%.2f",goal.x,goal.y, target_distance);
 				//go_click();
-				moving_state(.6,JAW_OPEN,JAW_INSIDE,6,TOP_LINE,moving_gather_filter);
+				moving_state(1.1,JAW_OPEN,JAW_INSIDE,18,TOP_LINE,moving_gather_filter);
 				break;
 
 			case (TURNING):
@@ -1400,8 +1400,8 @@ Status sharp_pos(Node* node) {
 	i = get_closest(p);
 	global_position.x =  p[i].x;
 	global_position.y =  p[i].y;
-	//printf("\nx: %d, y: %d", (int)p[i].x, (int)p[i].y);
-	//go_click();
+	printf("\nx: %d, y: %d", (int)p[i].x, (int)p[i].y);
+	go_click();
 	//printf("\n%d %d %d %d %d %d %d %d", (int)p[0].x, (int)p[0].y, (int)p[1].x, (int)p[1].y, (int)p[2].x, (int)p[2].y, (int)p[3].x, (int)p[3].y);
 	return SUCCESS;
 }
