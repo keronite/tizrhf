@@ -81,45 +81,50 @@ Node * create_tree() {
 	//Create nodes
 	Node * root = root_node();
 	Node * corner = corner_orient_node();
-	Node * grab = acquire_node(LARGE_BALL2);
-	Node * grab2 = acquire_node(LARGE_BALL3);
-	Node * goal = goal_defend_node();
-	Node * posn = posn_node();
-	Node * grab3 = acquire_node(LARGE_BALL0);
-	Node * grab4 = acquire_node(LARGE_BALL1);
-	Node * posn2 = posn_node();
+	
+	Node * grab0 = acquire_node(LARGE_BALL0);
+	Node * grab1 = acquire_node(LARGE_BALL1);
+	Node * grab2 = acquire_node(LARGE_BALL2);
+	Node * grab3 = acquire_node(LARGE_BALL3);
+	
+	Node * grabs8 = acquire_node(SMALL_BALL8);
+	
+	Node * goal0 = goal_defend_node();
+	Node * goal1 = goal_node();
 	Node * goal2 = goal_node();
-	Node * goal3 = goal_node();
+	
+	Node * posn0 = posn_node();
+	Node * posn1 = posn_node();
+	Node * posn2 = posn_node();
 	Node * posn3 = posn_node();
-	Node * position_for_flag = travel_node(54,60,90,true);
+	Node * posn4 = posn_node();
+	
+	Node * travel0 = travel_node(12,41,0,false);
+	Node * travel1 = travel_node(12,36,0,false);
+	Node * travel2 = travel_node(60,60,0,false);
+	
 	Node * line_find = find_line_node(FLAGBOX_LINE_TOP);
 	Node * flag = flag_node();
-	Node * travel0 = travel_node(18,56,0,false);
-	Node * travel1 = travel_node(18,18,0,false);
 
 	//Attach nodes
 	add_child(root,corner);
-	//add_child(corner,grab);
-	//add_child(grab,grab2);
-
-	add_child(corner,grab2);
-
-	add_child(grab2,goal);
-	add_child(goal,posn);
-	add_child(posn,grab);
-	add_child(grab,grab3);
-	add_child(grab3,line_find);
+	add_child(corner,grab3);
+	add_child(grab3,goal0);
+	add_child(goal0,posn0);
+	add_child(posn0,grab2);
+	add_child(grab2,grabs8);
+	add_child(grabs8,grab0);
+	add_child(grab0,travel1);
+	add_child(travel1,posn1);
+	add_child(posn1,goal1);
+	add_child(goal1,posn2);
+	add_child(posn2,grab1);
+	add_child(grab1,posn3);
+	add_child(posn3,line_find);
 	add_child(line_find,flag);
-	add_child(flag,travel0);
-	add_child(travel0,travel1);
-	add_child(travel1,posn3);
-	add_child(posn3,goal2);
-	add_child(goal2,posn2);
-	add_child(posn2,grab4);
-	add_child(grab4,goal3);
-
-	//Node * lol = posn_node();
-	//add_child(root, lol);
+	add_child(flag,posn4);
+	add_child(posn4,travel2);
+	add_child(travel2,goal2);
 
 
 	return root;
