@@ -98,6 +98,7 @@ Node * create_tree() {
 	Node * posn2 = posn_node();
 	Node * posn3 = posn_node();
 	Node * posn4 = posn_node();
+	//Node * posn5 = posn_node();
 	
 	Node * travel0 = travel_node(13,32,0,false);
 	Node * travel1 = travel_node(15,28,0,false);
@@ -119,12 +120,12 @@ Node * create_tree() {
 	add_child(posn1,goal1);
 	add_child(goal1,posn2);
 	add_child(posn2,grab1);
-	add_child(grab1,posn3);
-	add_child(posn3,line_find);
+	add_child(grab1,goal2);
+	add_child(goal2,posn3);
+	add_child(posn3,travel2);
+	add_child(travel2,posn4);
+	add_child(posn4,line_find);
 	add_child(line_find,flag);
-	add_child(flag,posn4);
-	add_child(posn4,travel2);
-	add_child(travel2,goal2);
 
 
 	return root;
