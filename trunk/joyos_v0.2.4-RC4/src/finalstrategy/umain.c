@@ -54,7 +54,7 @@ int umain () {
 					//printf("\nFAILURE umain");
 					//go_click();
 					turn(gyro_get_degrees() + (rand()%40 - 20),true);
-					drive(-6,1);
+					drive(-6,1.1);
 					Node * node;
 					node = posn_node();
 					servo_set_pos(JAW_SERVO,JAW_CLOSED);
@@ -104,7 +104,7 @@ Node * create_tree() {
 	
 	Node * travel0 = travel_node(18,33,0,false);
 	Node * travel1 = travel_node(15,28,0,false);
-	Node * travel2 = travel_node(54,56,90,true);
+	Node * travel2 = travel_node(54,54,90,true);
 	Node * travel3 = travel_node(52,38,0,false);
 	Node * travel4 = travel_node(22,56,0,false);
 	//Node * travel5 = travel_node(54,50,0,false);

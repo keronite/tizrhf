@@ -779,7 +779,7 @@ void moving_line_state(Line line) {
 		pause(50);
 
 		moving_line_filter(line);
-		if ((get_time() - state_time > 2500) && ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
+		if ((get_time() - state_time > 1500) || ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
 			state = FAIL_STATE;
 			soft_stop_motors(1);
 		}
