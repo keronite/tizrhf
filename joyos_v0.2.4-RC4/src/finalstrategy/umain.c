@@ -4,6 +4,7 @@
 #include <../src/finalstrategy/util.h>
 #include <../src/finalstrategy/actions.h>
 #include <happylib.h>
+#include <stdlib.h>
 
 uint8_t team_number[2] = {3,0};
 
@@ -52,6 +53,7 @@ int umain () {
 				} else {
 					//printf("\nFAILURE umain");
 					//go_click();
+					turn(gyro_get_degrees() + (rand()%40 - 20),true);
 					drive(-6,1);
 					Node * node;
 					node = posn_node();
@@ -83,7 +85,7 @@ Node * create_tree() {
 	Node * corner = corner_orient_node();
 	
 	Node * grab0 = acquire_node(LARGE_BALL0);
-	Node * grab1 = acquire_node(LARGE_BALL1);
+	//Node * grab1 = acquire_node(LARGE_BALL1);
 	Node * grab2 = acquire_node(LARGE_BALL2);
 	Node * grab3 = acquire_node_fast(LARGE_BALL3);
 	
@@ -91,21 +93,23 @@ Node * create_tree() {
 	
 	Node * goal0 = goal_defend_node();
 	Node * goal1 = goal_node();
-	Node * goal2 = goal_node();
+	//Node * goal2 = goal_node();
 	
 	Node * posn0 = posn_node();
 	Node * posn1 = posn_node();
 	Node * posn2 = posn_node();
-	Node * posn3 = posn_node();
+	//Node * posn3 = posn_node();
 	//Node * posn4 = posn_node();
 	//Node * posn5 = posn_node();
 	
-	Node * travel0 = travel_node(13,32,0,false);
+	Node * travel0 = travel_node(18,33,0,false);
 	Node * travel1 = travel_node(15,28,0,false);
-	Node * travel2 = travel_node(60,60,90,true);
-	Node * travel3 = travel_node(54,38,0,false);
+	Node * travel2 = travel_node(54,56,90,true);
+	Node * travel3 = travel_node(52,38,0,false);
 	Node * travel4 = travel_node(22,56,0,false);
-	Node * travel5 = travel_node(54,50,0,false);
+	//Node * travel5 = travel_node(54,50,0,false);
+	Node * travel6 = travel_node(60,54,0,false);
+	Node * travel7 = travel_node(12,60,0,false);
 	
 	Node * line_find = find_line_node(FLAGBOX_LINE_TOP);
 	Node * flag = flag_node();
@@ -118,14 +122,16 @@ Node * create_tree() {
 	add_child(posn0,grab2);
 	add_child(grab2,travel0);
 	add_child(travel0,grab0);
-	add_child(grab0,travel4);
+	add_child(grab0,travel6);
+	add_child(travel6,goal1);
+	add_child(grab0,travel7);
+	add_child(travel7,travel4);
 	add_child(travel4,travel1);
 	add_child(travel1,posn1);
 	add_child(posn1,goal1);
 	add_child(goal1,posn2);
 	add_child(posn2,travel3);
-	add_child(travel3,grab1);
-	add_child(grab1,travel2);//travel5);
+	add_child(travel3,travel2);//travel5);
 	//add_child(travel5,goal2);
 	//add_child(goal2,posn3);
 	//add_child(posn3,travel2);

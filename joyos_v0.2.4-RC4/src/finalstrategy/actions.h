@@ -17,5 +17,6 @@ Status acquire_ball_fast(Node * node);
 Status get_pos_front(Node* node);
 Status drive(float distance, float speed_scale);
 Status sharp_pos(Node* node);
+Status turn(float angle, bool short_turn);
 
 #endif //_ACTIONS_H_
