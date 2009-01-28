@@ -14,7 +14,7 @@ uint8_t team_number[2] = {3,0};
 Node* create_tree();
 
 int usetup () {
-	set_auto_halt(0);
+	//set_auto_halt(0);
 	printf_P (PSTR("\nPress go."));
 	go_click ();
 	printf_P (PSTR("\nStabilizing"));
@@ -125,10 +125,10 @@ Node * create_tree() {
 	add_child(goal1,posn2);
 	add_child(posn2,travel3);
 	add_child(travel3,grab1);
-	add_child(grab1,travel5);
-	add_child(travel5,goal2);
-	add_child(goal2,posn3);
-	add_child(posn3,travel2);
+	add_child(grab1,travel2);//travel5);
+	//add_child(travel5,goal2);
+	//add_child(goal2,posn3);
+	//add_child(posn3,travel2);
 	add_child(travel2,line_find);
 	add_child(line_find,flag);
 	add_child(travel2,travel2);

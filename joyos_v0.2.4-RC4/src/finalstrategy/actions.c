@@ -817,7 +817,7 @@ Status line_search(Node * node) {
 
 Status flagbox(Node * node) {
 	state_time = get_time();
-	turn(10,true);
+	turn(5,true);
 	motor_set_vel(FLAG_MOTOR, 235);
 	motor_set_vel(RIGHT_MOTOR, -55);
 	motor_set_vel(LEFT_MOTOR, -55);
@@ -826,7 +826,7 @@ Status flagbox(Node * node) {
 	motor_set_vel(LEFT_MOTOR, -25);
 	uint8_t count = 0;
 	while(1) {
-		if (get_time() - state_time > 15000) {
+		if (false){//get_time() - state_time > 15000) {
 			drive(3,1.0);
 
 			motor_set_vel(FLAG_MOTOR,0);
