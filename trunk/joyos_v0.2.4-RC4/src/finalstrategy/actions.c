@@ -443,7 +443,7 @@ Status dump_balls(Node* node) {
 		goal_theta = 0;
 	} else {*/
 		goal_x = 61.5;
-		goal_y = 14-1;
+		goal_y = 14-3;
 		goal_theta = 0;
 //	}
 
@@ -532,9 +532,11 @@ Status dump_balls(Node* node) {
 Status dump_defend(Node* node) {
 
 	motor_set_vel(FLAG_MOTOR,-200);
+	
+	servo_set_pos(LIFT_SERVO,LIFT_BOTTOM + 35);
 
 	Position p;
-	p.x = 72-14;
+	p.x = 72-15;
 	p.y = 26;
 	p.theta = 0;
 	node->use_theta = false;
@@ -574,8 +576,8 @@ Status dump_defend(Node* node) {
 		goal_y = 16;
 		goal_theta = 0;
 	} else {*/
-		goal_x = 60;
-		goal_y = 15;
+		goal_x = 62;
+		goal_y = 14.5;
 		goal_theta = 0;
 //	}
 
@@ -641,7 +643,7 @@ Status dump_defend(Node* node) {
 
 	drive(-5,.75);
 	turn(45,true);
-	drive(12, .75);
+	drive(15, .75);
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
 	pause(1000);
@@ -777,7 +779,7 @@ void moving_line_state(Line line) {
 		pause(50);
 
 		moving_line_filter(line);
-		if ((get_time() - state_time > 4000) && ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
+		if ((get_time() - state_time > 2500) && ((motor_get_current_MA(RIGHT_MOTOR) > 700) || (motor_get_current_MA(LEFT_MOTOR) > 700))){
 			state = FAIL_STATE;
 			soft_stop_motors(1);
 		}
@@ -804,6 +806,7 @@ Status line_search(Node * node) {
 		 }
 	}
 	if (state == FOUND) {
+		drive(-1,1);
 		return SUCCESS;
 	} else {
 		return FAILURE;
@@ -817,7 +820,7 @@ Status line_search(Node * node) {
 
 Status flagbox(Node * node) {
 	state_time = get_time();
-	turn(5,true);
+	turn(0,true);
 	motor_set_vel(FLAG_MOTOR, 235);
 	motor_set_vel(RIGHT_MOTOR, -55);
 	motor_set_vel(LEFT_MOTOR, -55);
@@ -847,7 +850,7 @@ Status flagbox(Node * node) {
 			motor_set_vel(RIGHT_MOTOR,40);
 			motor_set_vel(LEFT_MOTOR,40);
 			pause(1000);
-			turn(-20,true);
+			turn(-10,true);
 			motor_set_vel(RIGHT_MOTOR,-40);
 			motor_set_vel(LEFT_MOTOR,-40);
 			pause(1500);

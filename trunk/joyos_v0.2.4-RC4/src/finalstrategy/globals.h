@@ -30,8 +30,10 @@
 #define TURNING_SPEED 164
 
 //Sharp distance sensor
-#define SHARP_M 13569
-#define SHARP_C 4
+//#define SHARP_M 13569
+//#define SHARP_C 4
+#define SHARP_M 13832
+#define SHARP_C 7
 #define FRONT_SHARP 23
 #define BACK_SHARP 19
 
@@ -43,7 +45,7 @@
 
 //Dumping mechanism constants
 #define DUMP_FORWARD_DIST 7.0
-#define DUMP_REVERSE_DIST -15.0
+#define DUMP_REVERSE_DIST -18.0
 #define DUMPING_SPEED_MULT .85
 #define DUMPING_REV_SPEED_MULT .4
 
