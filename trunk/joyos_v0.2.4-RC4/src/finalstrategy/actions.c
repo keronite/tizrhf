@@ -149,7 +149,7 @@ void turning_state(bool short_turn) {
 	state_time = get_time();
 
 	float angle = gyro_get_degrees();
-	
+
 	if (short_turn) {
 
 		int angle_diff = (int)(target_angle - angle);
@@ -163,7 +163,7 @@ void turning_state(bool short_turn) {
 		}
 
 		target_angle = (int)angle + angle_diff;
-		
+
 	}
 
 	while(state == TURNING) {
@@ -412,9 +412,9 @@ Status dump_balls(Node* node) {
 
 	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
 	pause(1500);
-	
+
 	state_time = get_time();
-	
+
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_TOP);
@@ -511,9 +511,9 @@ Status dump_balls(Node* node) {
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
 	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
 	pause(1000);
-	
+
 	state_time = get_time();
-	
+
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
@@ -548,7 +548,7 @@ Status dump_defend(Node* node) {
 	servo_set_pos(LIFT_SERVO,LIFT_RAISE);
 	pause(1500);
 	state_time = get_time();
-	
+
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_TOP);
@@ -646,7 +646,7 @@ Status dump_defend(Node* node) {
 	servo_set_pos(LIFT_SERVO, LIFT_LOWER);
 	pause(1000);
 	state_time = get_time();
-	
+
 	while(1) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
@@ -1062,7 +1062,7 @@ Status acquire_ball_fast(Node * node) {
 	//go_click();
 	motor_set_vel(FLAG_MOTOR,-200);
 	turn(180,false);
-	
+
 	return SUCCESS;
 	//Stop
 }
@@ -1228,39 +1228,35 @@ Status get_pos_back(Node* node) {
 
 Orientation get_orientation_front (int angle) {
 	int anglepos;
-	if (angle%360 < 0){
-		anglepos = angle%360 + 360;
-	}
-	else {
-		anglepos = angle%360;
-	}
+	anglepos = (angle%360 + 360)%360;
 	Orientation o = NORTH;
 	char* os = "U";
 	int min_angle_dif = 45;
 	if (abs(anglepos) < min_angle_dif) {
 		min_angle_dif = abs(anglepos - 0);
-		o = NORTH;
-		os = "N";
-	}
-	if (abs(anglepos - 90) < min_angle_dif) {
-		min_angle_dif = abs(anglepos - 90);
 		o = WEST;
 		os = "W";
 	}
+	if (abs(anglepos - 90) < min_angle_dif) {
+		min_angle_dif = abs(anglepos - 90);
+		o = SOUTH;
+		os = "S";
+	}
 	if (abs(anglepos - 270) < min_angle_dif) {
 		min_angle_dif = abs(anglepos - 270);
-		o = EAST;
-		os = "E";
+		o = NORTH;
+		os = "N";
 	}
 	if (abs(anglepos - 180) < min_angle_dif) {
 		min_angle_dif = abs(anglepos - 180);
-		o = SOUTH;
-		os = "S";
+		o = EAST;
+		os = "E";
 	}
 	return o;
 }
 
 Orientation get_orientation_back (int angle) {
+
 	int anglepos;
 	if (angle%360 < 0){
 		anglepos = angle%360 + 360;
@@ -1295,6 +1291,7 @@ Orientation get_orientation_back (int angle) {
 }
 
 Status sharp_pos(Node* node) {
+
 	if (global_position.x < 36) {
 		if (global_position.y < 48) {
 			turn(-30,true);
@@ -1316,8 +1313,8 @@ Status sharp_pos(Node* node) {
 	int servo_set2f = degrees_to_servo_units(angleb%90 + 90);
 	int a1f = servo_units_to_degrees(servo_set1f);
 	int a2f = servo_units_to_degrees(servo_set2f);
-	Orientation s1f = get_orientation_front(anglef - a1f);
-	Orientation s2f = get_orientation_front(anglef - a2f);
+	Orientation s1f = get_orientation_front(angleb - a1f);
+	Orientation s2f = get_orientation_front(angleb - a2f);
 	int servo_set1b = degrees_to_servo_units2(angleb%90);
 	int servo_set2b = degrees_to_servo_units2(angleb%90 + 90);
 	int a1b = servo_units_to_degrees2(servo_set1b);
@@ -1464,7 +1461,8 @@ Status sharp_pos(Node* node) {
 	//printf("\nx: %d, y: %d", (int)p[i].x, (int)p[i].y);
 	//go_click();
 	//printf("\n%d %d %d %d %d %d %d %d", (int)p[0].x, (int)p[0].y, (int)p[1].x, (int)p[1].y, (int)p[2].x, (int)p[2].y, (int)p[3].x, (int)p[3].y);
-
+	//printf("\nN %d S %d W %d E %d", (int) m.N, (int) m.S, (int) m.W, (int) m.E);
+	//printf("\n%d, %d", angleb - a1f, angleb - a2f);
 	return SUCCESS;
 }
 

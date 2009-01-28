@@ -143,7 +143,7 @@ int degrees_to_servo_units2(int degrees) {
 }
 
 int servo_units_to_degrees(int servo_angle) {
-	int degrees = (int) ((servo_angle - 244.0)*90.0/227.0);
+	int degrees = (int) (180.0-((servo_angle - 17.0)*90.0/227.0));
 	return degrees;
 }
 
