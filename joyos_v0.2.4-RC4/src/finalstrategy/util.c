@@ -109,8 +109,8 @@ Position get_ball_position(Ball ball) {
 			p.y = 33;
 			break;
 		case (LARGE_BALL3):
-			p.x = 53;
-			p.y = 47;
+			p.x = 55;
+			p.y = 48;
 			break;
 	}
 

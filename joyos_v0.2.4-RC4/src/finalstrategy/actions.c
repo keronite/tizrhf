@@ -171,11 +171,11 @@ void turning_state(bool short_turn) {
 		float angle = gyro_get_degrees();
 
 		if (target_angle > angle) {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/7.0 + 70, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/7.0 - 70 + OFFSET_ESTIMATE, -TURNING_SPEED + OFFSET_ESTIMATE, TURNING_SPEED));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/5.0 + 70, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/5.0 - 70 + OFFSET_ESTIMATE, -TURNING_SPEED + OFFSET_ESTIMATE, TURNING_SPEED));
 		} else {
-			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/7.0 - 70, -TURNING_SPEED, TURNING_SPEED));
-			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/7.0 + 70 - OFFSET_ESTIMATE, -TURNING_SPEED, TURNING_SPEED - OFFSET_ESTIMATE));
+			motor_set_vel(RIGHT_MOTOR, clamp((target_angle - angle)/5.0 - 70, -TURNING_SPEED, TURNING_SPEED));
+			motor_set_vel(LEFT_MOTOR, clamp((angle - target_angle)/5.0 + 70 - OFFSET_ESTIMATE, -TURNING_SPEED, TURNING_SPEED - OFFSET_ESTIMATE));
 		}
 		pause(50);
 
@@ -419,7 +419,7 @@ Status dump_balls(Node* node) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_TOP);
 			break;
-		} else if (get_time() - state_time < 6000) {
+		} else if (get_time() - state_time > 4000) {
 			servo_set_pos(LIFT_SERVO,LIFT_TOP);
 			return FAILURE;
 		}
@@ -518,7 +518,7 @@ Status dump_balls(Node* node) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
 			break;
-		} else if (get_time() - state_time < 5000) {
+		} else if (get_time() - state_time > 4000) {
 			servo_set_pos(LIFT_SERVO,LIFT_BOTTOM);
 			drive(-3,1);
 			servo_set_pos(LIFT_SERVO,LIFT_LOWER);
@@ -553,7 +553,7 @@ Status dump_defend(Node* node) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_TOP);
 			break;
-		} else if (get_time() - state_time < 6000) {
+		} else if (get_time() - state_time > 4000) {
 			servo_set_pos(LIFT_SERVO,LIFT_TOP);
 			return FAILURE;
 		}
@@ -651,7 +651,7 @@ Status dump_defend(Node* node) {
 		if (digital_read(LIFT_BUMP)) {
 			servo_set_pos(LIFT_SERVO, LIFT_BOTTOM);
 			break;
-		} else if (get_time() - state_time < 5000) {
+		} else if (get_time() - state_time > 4000) {
 			servo_set_pos(LIFT_SERVO,LIFT_BOTTOM);
 			drive(-3,1);
 			servo_set_pos(LIFT_SERVO,LIFT_LOWER);
@@ -787,8 +787,8 @@ void moving_line_state(Line line) {
 Status line_search(Node * node) {
 	//printf("\nLine search");
 	// hardcoded y
-	float a = atan2(-1*(get_line_position(node->line).x - global_position.x),(62 - global_position.y))*RAD_TO_DEG;
-	turn(a,true);
+	//float a = atan2(-1*(get_line_position(node->line).x - global_position.x),(62 - global_position.y))*RAD_TO_DEG;
+	turn(90,true);
 	state = MOVING;
 	target_distance = 100;
 	reset_pid_controller(gyro_get_degrees());
@@ -817,7 +817,7 @@ Status line_search(Node * node) {
 
 Status flagbox(Node * node) {
 	state_time = get_time();
-	turn(0,true);
+	turn(10,true);
 	motor_set_vel(FLAG_MOTOR, 235);
 	motor_set_vel(RIGHT_MOTOR, -55);
 	motor_set_vel(LEFT_MOTOR, -55);
@@ -847,10 +847,10 @@ Status flagbox(Node * node) {
 			motor_set_vel(RIGHT_MOTOR,40);
 			motor_set_vel(LEFT_MOTOR,40);
 			pause(1000);
-			turn(0,true);
+			turn(-20,true);
 			motor_set_vel(RIGHT_MOTOR,-40);
 			motor_set_vel(LEFT_MOTOR,-40);
-			pause(500);
+			pause(1500);
 			//return FAILURE;
 			count = 0;
 		}
@@ -935,6 +935,8 @@ Status acquire_ball(Node * node) {
 	//drive_gather(ACQUIRE_DISTANCE,JAW_OPEN,JAW_INSIDE,ACQUIRE_MULT);//Drive a little
 	state_time = get_time();
 
+
+/*
 	while(1) {
 		if (digital_read(JAW_BUMP)) {
 			break;
@@ -945,6 +947,7 @@ Status acquire_ball(Node * node) {
 			return SUCCESS;
 		}
 	}
+*/
 
 	//!!!!
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
@@ -1035,6 +1038,7 @@ Status acquire_ball_fast(Node * node) {
 	//drive_gather(ACQUIRE_DISTANCE,JAW_OPEN,JAW_INSIDE,ACQUIRE_MULT);//Drive a little
 	state_time = get_time();
 
+/*
 	while(1) {
 		if (digital_read(JAW_BUMP)) {
 			break;
@@ -1045,6 +1049,7 @@ Status acquire_ball_fast(Node * node) {
 			return SUCCESS;
 		}
 	}
+*/
 
 	//!!!!
 	servo_set_pos(JAW_SERVO, JAW_CLOSED);
@@ -1055,6 +1060,7 @@ Status acquire_ball_fast(Node * node) {
 	//global_position.y += deltaY;
 	//printf("\n x = %f y = %f", global_position.x, global_position.y);
 	//go_click();
+	motor_set_vel(FLAG_MOTOR,-200);
 	turn(180,false);
 	
 	return SUCCESS;
